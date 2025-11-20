@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>法楽寺_20251117_1β版</title>
+    <title>法楽寺_20251120_3β版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -206,6 +206,64 @@
             font-size: 16px;
             line-height: 1.8;
         }
+        .result-god {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #8b4513;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .result-god .god-name {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .result-god .god-reading {
+            font-size: 16px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .result-god .god-info {
+            font-size: 13px;
+            color: #666;
+        }
+        .admin-navigation {
+            display: none;
+            margin-top: 20px;
+            gap: 15px;
+        }
+        .admin-navigation.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .admin-nav-btn {
+            background: linear-gradient(45deg, #666, #888);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .admin-nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .admin-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .admin-counter {
+            font-size: 18px;
+            font-weight: bold;
+            color: #8b4513;
+            min-width: 100px;
+            text-align: center;
+        }
         @keyframes fadeInScale {
             from {
                 opacity: 0;
@@ -304,7 +362,7 @@
         <!-- おみくじ画面 -->
         <div class="omikuji-screen" id="omikujiScreen">
             <div class="temple-header">
-                <h1 class="temple-title">🏯 法楽寺_20251117_1β版</h1>
+                <h1 class="temple-title">🏯 法楽寺_20251120_3β版</h1>
                 <p class="temple-subtitle">無料おみくじ</p>
             </div>
             
@@ -317,6 +375,17 @@
                 <button class="omikuji-button" id="drawBtn" onclick="drawOmikuji()">
                     🎋 おみくじを引く
                 </button>
+                
+                <!-- 管理者用ナビゲーション -->
+                <div class="admin-navigation" id="adminNavigation">
+                    <button class="admin-nav-btn" id="prevBtn" onclick="showPrevious()">
+                        ← 前へ
+                    </button>
+                    <div class="admin-counter" id="adminCounter"></div>
+                    <button class="admin-nav-btn" id="nextBtn" onclick="showNext()">
+                        次へ →
+                    </button>
+                </div>
             </div>
             
             <div class="result-section">
@@ -324,6 +393,7 @@
                     <div class="result-number" id="resultNumber"></div>
                     <div class="result-fortune" id="resultFortune"></div>
                     <div class="result-message" id="resultMessage"></div>
+                    <div class="result-god" id="resultGod"></div>
                 </div>
                 
                 <!-- 参拝案内セクション -->
@@ -348,35 +418,66 @@
 
     <script>
         let correctPassword = '1234';
+        let adminPassword = '2256';
+        let isAdminMode = false;
+        let currentIndex = 0;
 
         const omikujiResults = {
-            normal: [
-                { number: 1, fortune: "大吉", message: "素晴らしい一日となるでしょう" },
-                { number: 2, fortune: "中吉", message: "良いご縁に恵まれます" },
-                { number: 3, fortune: "小吉", message: "小さな幸せが訪れます" },
-                { number: 4, fortune: "吉", message: "穏やかな日々が続きます" },
-                { number: 5, fortune: "半吉", message: "努力が実を結ぶでしょう" },
-                { number: 6, fortune: "末吉", message: "後に良いことがあります" },
-                { number: 7, fortune: "凶", message: "慎重に行動しましょう" },
-                { number: 8, fortune: "大吉", message: "願いが叶う兆しです" },
-                { number: 9, fortune: "中吉", message: "人との出会いを大切に" },
-                { number: 10, fortune: "小吉", message: "健康に気をつけて" },
-                { number: 11, fortune: "吉", message: "家族との時間を大切に" },
-                { number: 12, fortune: "半吉", message: "学びの機会が訪れます" },
-                { number: 13, fortune: "末吉", message: "忍耐強く取り組みましょう" },
-                { number: 14, fortune: "凶", message: "今は準備の時です" },
-                { number: 15, fortune: "大吉", message: "新たな道が開けます" },
-                { number: 16, fortune: "中吉", message: "心の平安が得られます" },
-                { number: 17, fortune: "小吉", message: "思いやりの心を持って" },
-                { number: 18, fortune: "吉", message: "自然との調和を大切に" },
-                { number: 19, fortune: "半吉", message: "感謝の気持ちを忘れずに" },
-                { number: 20, fortune: "末吉", message: "時を待つことも大切です" }
-            ],
-            rare: [
-                { number: 21, fortune: "🌟 特大吉", message: "奇跡的な幸運に恵まれます!\n仏様のご加護をいただいています" },
-                { number: 22, fortune: "🙏 法福", message: "功徳を積む機会が訪れます\n他者への慈悲の心を大切に" },
-                { number: 23, fortune: "✨ 霊験", message: "ご先祖様の見守りを感じる時\nお墓参りをおすすめします" },
-                { number: 24, fortune: "🏛️ 寺縁", message: "お寺との深いご縁を感じる時\n心の支えが得られるでしょう" }
+            results: [
+                { number: 1, fortune: "大吉", message: "素晴らしい１年となるでしょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "75%" },
+                { number: 2, fortune: "中吉", message: "良いご縁に恵まれます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "66%" },
+                { number: 3, fortune: "小吉", message: "小さな幸せが訪れます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "40%" },
+                { number: 4, fortune: "吉", message: "穏やかな日々が続きます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "22%" },
+                { number: 5, fortune: "結実吉", message: "努力が実を結ぶでしょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "18%" },
+                { number: 6, fortune: "追込み吉", message: "後に良いことがあります", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, rate: "47%" },
+                { number: 7, fortune: "準備吉", message: "慎重に行動しましょう", god: "八幡大菩薩", godReading: "はちまんだいぼさつ", godNumber: 2, rate: "23%" },
+                { number: 8, fortune: "大吉", message: "願いが叶う兆しです", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "9%" },
+                { number: 9, fortune: "中吉", message: "人との出会いを大切に", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "15%" },
+                { number: 10, fortune: "小吉", message: "健康維持を優先しましょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "36%" },
+                { number: 11, fortune: "家族吉", message: "家族との時間を大切に", god: "六地蔵菩薩", godReading: "ろくじぞうぼさつ", godNumber: 12, rate: "61%" },
+                { number: 12, fortune: "勉強吉", message: "学びの機会が訪れます", god: "文殊菩薩", godReading: "もんじゅぼさつ", godNumber: 3, rate: "8%" },
+                { number: 13, fortune: "根性吉", message: "忍耐強く取り組みましょう", god: "羅刹天", godReading: "らせつてん", godNumber: 5, rate: "41%" },
+                { number: 14, fortune: "明日は吉", message: "今は準備の時です", god: "八幡大菩薩", godReading: "はちまんだいぼさつ", godNumber: 2, rate: "24%" },
+                { number: 15, fortune: "大吉", message: "新たな道が開けます", god: "大日如来", godReading: "だいにちにょらい", godNumber: 6, rate: "72%" },
+                { number: 16, fortune: "中吉", message: "心の平安が得られます", god: "地蔵菩薩", godReading: "じぞうぼさつ", godNumber: 14, rate: "11%" },
+                { number: 17, fortune: "小吉", message: "思いやりの心を持って行動を", god: "地蔵菩薩", godReading: "じぞうぼさつ", godNumber: 14, rate: "19%" },
+                { number: 18, fortune: "eco吉", message: "自然との調和を大切に", god: "地蔵菩薩", godReading: "じぞうぼさつ", godNumber: 14, rate: "66%" },
+                { number: 19, fortune: "笑顔吉", message: "感謝の気持ちを忘れずに", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "29%" },
+                { number: 20, fortune: "待ち吉", message: "時を待つことも大切です", god: "八幡大菩薩", godReading: "はちまんだいぼさつ", godNumber: 2, rate: "62%" },
+                { number: 21, fortune: "特大吉", message: "奇跡的な幸運に恵まれます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "48%" },
+                { number: 22, fortune: "修行吉", message: "功徳を積む機会が訪れます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "52%" },
+                { number: 23, fortune: "墓参り吉", message: "ご先祖様のご加護を感じたらお礼参りへ", god: "焔摩天", godReading: "えんまてん", godNumber: 5, rate: "28%" },
+                { number: 24, fortune: "お参り吉", message: "仏様との深いご縁が訪れます", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, rate: "73%" },
+                { number: 25, fortune: "晴天吉", message: "雨男、雨女とは呼ばれなくなります", god: "日天・月天", godReading: "にってん・がってん", godNumber: 5, rate: "39%" },
+                { number: 26, fortune: "復活吉", message: "不運・不調のトンネル出口が見えます", god: "火天", godReading: "かてん", godNumber: 5, rate: "46%" },
+                { number: 27, fortune: "繁盛吉", message: "努力した分が結果に出ます", god: "大黒天", godReading: "だいこくてん", godNumber: 8, rate: "51%" },
+                { number: 28, fortune: "恋愛吉", message: "心に決めた人が運命の人", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, rate: "64%" },
+                { number: 29, fortune: "自信吉", message: "年齢などにとらわれる必要無し", god: "八幡大菩薩", godReading: "はちまんだいぼさつ", godNumber: 2, rate: "8%" },
+                { number: 30, fortune: "リフレッシュ吉", message: "異変を感じたら迷わず休め", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "10%" },
+                { number: 31, fortune: "牛歩吉", message: "歩みは遅いが着実に実る", god: "地天", godReading: "じてん", godNumber: 5, rate: "51%" },
+                { number: 32, fortune: "練習吉", message: "努力すれば自己新記録が狙える", god: "梵天", godReading: "ぼんてん", godNumber: 5, rate: "19%" },
+                { number: 33, fortune: "取組吉", message: "新しい事に利が多し", god: "風天", godReading: "ふうてん", godNumber: 5, rate: "61%" },
+                { number: 34, fortune: "返却吉", message: "貸して忘れてた物が手元に戻ります", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, rate: "50%" },
+                { number: 35, fortune: "上昇吉", message: "行動すれば追い風が吹くでしょう", god: "風天", godReading: "ふうてん", godNumber: 5, rate: "13%" },
+                { number: 36, fortune: "余裕吉", message: "２度寝しても何とかなります", god: "梵天", godReading: "ぼんてん", godNumber: 5, rate: "36%" },
+                { number: 37, fortune: "突破吉", message: "勢いで押すと結果が出ます", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, rate: "58%" },
+                { number: 38, fortune: "魅力吉", message: "人に聞くと自分の知らない発見有り", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, rate: "5%" },
+                { number: 39, fortune: "武士道吉", message: "弱音を見せないで行動すると味方が増えます", god: "焔摩天", godReading: "えんまてん", godNumber: 5, rate: "59%" },
+                { number: 40, fortune: "挑戦吉", message: "チャレンジが実を結ぶ年", god: "梵天", godReading: "ぼんてん", godNumber: 5, rate: "67%" },
+                { number: 41, fortune: "二度吉", message: "今年は幸せのピークが２度有り", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, rate: "73%" },
+                { number: 42, fortune: "月一吉", message: "月に１回は良いことが有るでしょう", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, rate: "35%" },
+                { number: 43, fortune: "果報吉", message: "寝れば寝るほど大吉が訪れます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "53%" },
+                { number: 44, fortune: "大吉", message: "今年は大躍進を遂げるでしょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, rate: "23%" },
+                { number: 45, fortune: "みな吉", message: "自分と周囲が皆幸せな一年でしょう", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, rate: "32%" },
+                { number: 46, fortune: "堅実吉", message: "とにかくまじめに頑張れば結果が出ます", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, rate: "15%" },
+                { number: 47, fortune: "変化吉", message: "思ってる事をやってみましょう", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, rate: "23%" },
+                { number: 48, fortune: "中吉", message: "金運が良いでしょう", god: "大黒天", godReading: "だいこくてん", godNumber: 8, rate: "45%" },
+                { number: 49, fortune: "通い吉", message: "毎月パワースポットを巡ると幸運キープ", god: "三十三観音", godReading: "さんじゅうさんかんのん", godNumber: 13, rate: "48%" },
+                { number: 50, fortune: "旅吉", message: "いつか行きたい場所へ今年行きましょう", god: "弘法大師", godReading: "こうぼうだいし", godNumber: 9, rate: "14%" },
+                { number: 51, fortune: "縁切り吉", message: "悪縁、腐れ縁がやっと切れます", god: "青面金剛", godReading: "しょうめんこんごう", godNumber: 11, rate: "63%" },
+                { number: 52, fortune: "小吉", message: "もやもやが全て水に流せます", god: "水天", godReading: "すいてん", godNumber: 5, rate: "62%" },
+                { number: 53, fortune: "鬼吉", message: "強い心が身に付く年になります", god: "不動明王", godReading: "ふどうみょうおう", godNumber: 7, rate: "26%" },
+                { number: 54, fortune: "守護吉", message: "振れない心を得られる自信が付くでしょう", god: "不動明王", godReading: "ふどうみょうおう", godNumber: 7, rate: "42%" }
             ]
         };
 
@@ -385,9 +486,18 @@
             const errorMsg = document.getElementById('errorMessage');
             
             if (input === correctPassword) {
+                isAdminMode = false;
                 sessionStorage.setItem('omikuji_auth', 'true');
+                sessionStorage.setItem('omikuji_admin', 'false');
                 errorMsg.classList.remove('show');
                 showOmikujiScreen();
+            } else if (input === adminPassword) {
+                isAdminMode = true;
+                sessionStorage.setItem('omikuji_auth', 'true');
+                sessionStorage.setItem('omikuji_admin', 'true');
+                errorMsg.classList.remove('show');
+                showOmikujiScreen();
+                enableAdminMode();
             } else {
                 errorMsg.classList.add('show');
                 document.getElementById('passwordInput').value = '';
@@ -414,37 +524,47 @@
             resultCard.classList.remove('show', 'rare-glow');
             document.getElementById('worshipGuide').classList.remove('show');
             
-            // まず結果を決定
-            let result;
-            const randomValue = Math.random();
+            // ランダムに結果を選択
+            const idx = Math.floor(Math.random() * omikujiResults.results.length);
+            const result = omikujiResults.results[idx];
             
-            if (randomValue < 0.05) {
-                const idx = Math.floor(Math.random() * omikujiResults.rare.length);
-                result = omikujiResults.rare[idx];
-            } else {
-                const idx = Math.floor(Math.random() * omikujiResults.normal.length);
-                result = omikujiResults.normal[idx];
-            }
-            
-            // レアの場合は3秒、ノーマルの場合は1.5秒待機
-            const isRare = result.number >= 21;
-            const displayDelay = isRare ? 3000 : 1500;
-            
+            // 1.5秒待機してから結果表示
             setTimeout(() => {
                 document.getElementById('resultNumber').textContent = `第${result.number}番`;
                 document.getElementById('resultFortune').textContent = result.fortune;
                 document.getElementById('resultMessage').textContent = result.message;
                 
+                // ご縁仏の情報を表示
+                const godHtml = `
+                    <div class="god-name">${result.god}</div>
+                    <div class="god-reading">(${result.godReading})</div>
+                    <div class="god-info">ご縁仏の番号: ${result.godNumber}</div>
+                `;
+                document.getElementById('resultGod').innerHTML = godHtml;
+                
                 const fortuneElement = document.getElementById('resultFortune');
-                if (isRare) {
-                    fortuneElement.classList.add('rare');
-                    resultCard.classList.add('rare-glow');
-                } else {
-                    fortuneElement.classList.remove('rare');
-                    resultCard.classList.remove('rare-glow');
-                }
+                fortuneElement.classList.remove('rare');
+                resultCard.classList.remove('rare-glow');
                 
                 resultCard.classList.add('show');
+                
+                // 参拝案内の表示内容切替（ご縁仏番号）
+                const wg = document.getElementById('worshipGuide');
+                const title = wg.querySelector('.worship-guide-title');
+                const imgs = wg.querySelectorAll('.temple-item');
+                if (result.godNumber <= 5) {
+                    title.innerHTML = "①薬師堂中へお入り頂き参拝されまして<br>より深いご利益をお授かりください。";
+                    imgs[0].style.display = "block";
+                    imgs[1].style.display = "none";
+                } else if (result.godNumber <= 8) {
+                    title.innerHTML = "②光龍閣へお入り頂き参拝されまして<br>より深いご利益をお授かりください。";
+                    imgs[0].style.display = "none";
+                    imgs[1].style.display = "block";
+                } else {
+                    title.innerHTML = "①薬師堂と②光龍閣の両方の中へ<br>お入り頂き参拝されまして<br>より深いご利益をお授かりください。";
+                    imgs[0].style.display = "block";
+                    imgs[1].style.display = "block";
+                }
                 
                 // 参拝案内を遅延表示（結果表示の1.5秒後）
                 setTimeout(() => {
@@ -454,11 +574,82 @@
                 button.classList.remove('spinning');
                 button.disabled = false;
                 button.textContent = '🎋 おみくじを引く';
-            }, displayDelay);
+            }, 1500);
+        }
+
+        function enableAdminMode() {
+            isAdminMode = true;
+            currentIndex = 0;
+            document.getElementById('drawBtn').style.display = 'none';
+            document.getElementById('adminNavigation').classList.add('show');
+            showAdminResult(currentIndex);
+        }
+
+        function showAdminResult(index) {
+            const result = omikujiResults.results[index];
+            const resultCard = document.getElementById('resultCard');
+            
+            document.getElementById('resultNumber').textContent = `第${result.number}番`;
+            document.getElementById('resultFortune').textContent = result.fortune;
+            document.getElementById('resultMessage').textContent = result.message;
+            
+            // ご縁仏の情報を表示
+            const godHtml = `
+                <div class="god-name">${result.god}</div>
+                <div class="god-reading">(${result.godReading})</div>
+                <div class="god-info">ご縁仏の番号: ${result.godNumber}</div>
+            `;
+            document.getElementById('resultGod').innerHTML = godHtml;
+            
+            resultCard.classList.add('show');
+            
+            // 参拝案内の表示内容切替（ご縁仏番号）
+            const wg = document.getElementById('worshipGuide');
+            const title = wg.querySelector('.worship-guide-title');
+            const imgs = wg.querySelectorAll('.temple-item');
+            if (result.godNumber <= 5) {
+                title.innerHTML = "①薬師堂中へお入り頂き参拝されまして<br>より深いご利益をお授かりください。";
+                imgs[0].style.display = "block";
+                imgs[1].style.display = "none";
+            } else if (result.godNumber <= 8) {
+                title.innerHTML = "②光龍閣へお入り頂き参拝されまして<br>より深いご利益をお授かりください。";
+                imgs[0].style.display = "none";
+                imgs[1].style.display = "block";
+            } else {
+                title.innerHTML = "①薬師堂と②光龍閣の両方の中へ<br>お入り頂き参拝されまして<br>より深いご利益をお授かりください。";
+                imgs[0].style.display = "block";
+                imgs[1].style.display = "block";
+            }
+            
+            document.getElementById('worshipGuide').classList.add('show');
+            
+            // カウンター更新
+            document.getElementById('adminCounter').textContent = `${index + 1} / ${omikujiResults.results.length}`;
+            
+            // ボタンの有効/無効化
+            document.getElementById('prevBtn').disabled = (index === 0);
+            document.getElementById('nextBtn').disabled = (index === omikujiResults.results.length - 1);
+        }
+
+        function showPrevious() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showAdminResult(currentIndex);
+            }
+        }
+
+        function showNext() {
+            if (currentIndex < omikujiResults.results.length - 1) {
+                currentIndex++;
+                showAdminResult(currentIndex);
+            }
         }
 
         if (sessionStorage.getItem('omikuji_auth') === 'true') {
             showOmikujiScreen();
+            if (sessionStorage.getItem('omikuji_admin') === 'true') {
+                enableAdminMode();
+            }
         }
     </script>
 </body>
