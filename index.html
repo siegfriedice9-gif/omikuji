@@ -43,12 +43,28 @@
                 
                 <!-- ルーレット回転演出 -->
                 <div id="rouletteContainer" class="roulette-container">
+                    <div class="dart" id="dart">
+                        <div class="dart-tip"></div>
+                        <div class="dart-body"></div>
+                        <div class="dart-flight"></div>
+                    </div>
                     <canvas id="rouletteCanvas" width="400" height="400"></canvas>
                     <div class="roulette-pointer">▼</div>
                     <div class="roulette-message">
                         <p id="rouletteText" class="roulette-text">画面をタップしてください！</p>
-                        <p id="tapCounter" class="tap-counter">あと<span id="remainingTaps">3</span>回タップ！</p>
+                        <p id="tapCounter" class="tap-counter">タップしてダーツを投げる！</p>
                     </div>
+                </div>
+                
+                <!-- 高速カウンター演出 -->
+                <div id="counterContainer" class="counter-container">
+                    <div class="counter-display">
+                        <div id="fortuneDisplay" class="fortune-display">大吉</div>
+                    </div>
+                    <p class="counter-message">心を込めて...</p>
+                    <button id="stopBtn" class="stop-button" onclick="stopCounter()" disabled>
+                        ストップ！
+                    </button>
                 </div>
             </div>
 

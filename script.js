@@ -64,19 +64,30 @@ const omikujiResults = {
     ]
 };
 
-// ルーレット用の変数（タップ3回、緩急強調版）
+// ルーレット用の変数（タップ1回、矢の演出版）
 let rouletteData = {
     canvas: null,
     ctx: null,
     rotation: 0,
-    rotationSpeed: 0.02,  // 初期速度を遅く（0.05 → 0.02）
-    maxSpeed: 0.6,        // 最高速度を速く（0.5 → 0.6）
+    rotationSpeed: 0.1,   // 初期速度
+    maxSpeed: 0.5,        // 最高速度
     tapCount: 0,
-    maxTaps: 3,           // タップ回数を3回に変更
+    maxTaps: 1,           // タップ回数を1回に変更
     isSpinning: false,
     isStopping: false,
     selectedResult: null,
-    animationFrame: null
+    animationFrame: null,
+    arrowShot: false
+};
+
+// 高速カウンター用の変数
+let counterData = {
+    interval: null,
+    currentIndex: 0,
+    isRunning: false,
+    isStopping: false,
+    selectedResult: null,
+    speed: 50  // 初期速度（ミリ秒）
 };
 
 // パスワードチェック
@@ -125,21 +136,33 @@ function drawOmikuji() {
     const button = document.getElementById('drawBtn');
     const resultCard = document.getElementById('resultCard');
     const rouletteContainer = document.getElementById('rouletteContainer');
+    const counterContainer = document.getElementById('counterContainer');
     
     // ボタンを隠して演出開始
     button.style.display = 'none';
     resultCard.classList.remove('show', 'rare-glow');
     document.getElementById('worshipGuide').classList.remove('show');
     
-    // ルーレット演出を表示
-    rouletteContainer.classList.add('active');
-    
-    // ルーレットを初期化
-    initRoulette();
-    
     // ランダムに結果を選択（事前に決定）
     const idx = Math.floor(Math.random() * omikujiResults.results.length);
-    rouletteData.selectedResult = omikujiResults.results[idx];
+    const selectedResult = omikujiResults.results[idx];
+    
+    // ランダムに演出を選択（50%の確率でルーレットかカウンター）
+    const useRoulette = Math.random() < 0.5;
+    
+    if (useRoulette) {
+        // ルーレット演出
+        rouletteContainer.classList.add('active');
+        counterContainer.classList.remove('active');
+        rouletteData.selectedResult = selectedResult;
+        initRoulette();
+    } else {
+        // 高速カウンター演出
+        counterContainer.classList.add('active');
+        rouletteContainer.classList.remove('active');
+        counterData.selectedResult = selectedResult;
+        initCounter();
+    }
 }
 
 // ルーレットの初期化
@@ -147,13 +170,22 @@ function initRoulette() {
     rouletteData.canvas = document.getElementById('rouletteCanvas');
     rouletteData.ctx = rouletteData.canvas.getContext('2d');
     rouletteData.rotation = 0;
-    rouletteData.rotationSpeed = 0.02;  // 初期速度を遅く
+    rouletteData.rotationSpeed = 0.1;
     rouletteData.tapCount = 0;
     rouletteData.isSpinning = true;
     rouletteData.isStopping = false;
+    rouletteData.arrowShot = false;
     
-    // タップカウンターをリセット
-    document.getElementById('remainingTaps').textContent = rouletteData.maxTaps;
+    // ダーツを表示
+    const dart = document.getElementById('dart');
+    const canvas = document.getElementById('rouletteCanvas');
+    const pointer = document.querySelector('.roulette-pointer');
+    
+    dart.className = 'dart ready';
+    canvas.classList.remove('zooming');
+    pointer.classList.remove('zooming');
+    
+    // メッセージをリセット
     document.getElementById('rouletteText').textContent = '画面をタップしてください！';
     document.getElementById('rouletteText').classList.remove('stopping');
     
@@ -167,35 +199,53 @@ function initRoulette() {
 
 // ルーレットをタップ
 function handleRouletteTap() {
-    if (rouletteData.isStopping || !rouletteData.isSpinning) return;
+    if (rouletteData.isStopping || !rouletteData.isSpinning || rouletteData.arrowShot) return;
     
     rouletteData.tapCount++;
-    const remaining = rouletteData.maxTaps - rouletteData.tapCount;
+    rouletteData.arrowShot = true;
+    
+    const dart = document.getElementById('dart');
+    const canvas = document.getElementById('rouletteCanvas');
+    const pointer = document.querySelector('.roulette-pointer');
     
     // タップエフェクト
-    const canvas = document.getElementById('rouletteCanvas');
     canvas.classList.add('tap-effect');
     setTimeout(() => canvas.classList.remove('tap-effect'), 100);
     
-    // 回転速度を大幅に上げる（緩急を強調）
-    rouletteData.rotationSpeed = Math.min(
-        rouletteData.rotationSpeed + 0.15,  // 加速量を大幅アップ（0.08 → 0.15）
-        rouletteData.maxSpeed
-    );
+    // メッセージ変更
+    document.getElementById('rouletteText').textContent = 'ダーツが飛んでいます...';
+    document.getElementById('tapCounter').style.display = 'none';
     
-    // 残りタップ数を更新
-    if (remaining > 0) {
-        document.getElementById('remainingTaps').textContent = remaining;
-        // アニメーションをトリガー
-        const span = document.getElementById('remainingTaps');
-        span.style.animation = 'none';
-        setTimeout(() => span.style.animation = 'tapCountBounce 0.3s ease', 10);
-    }
+    // ダーツを飛ばす
+    dart.classList.remove('ready');
+    dart.classList.add('flying');
     
-    // 3回タップしたら停止開始
-    if (rouletteData.tapCount >= rouletteData.maxTaps) {
-        stopRoulette();
-    }
+    // クリックイベントを無効化
+    document.getElementById('rouletteContainer').onclick = null;
+    
+    // ダーツが刺さる（0.6秒後）
+    setTimeout(() => {
+        dart.classList.remove('flying');
+        dart.classList.add('stuck', 'vibrating');
+        
+        // 振動を0.3秒後に停止
+        setTimeout(() => {
+            dart.classList.remove('vibrating');
+            
+            // 拡大演出を開始（0.5秒後）
+            setTimeout(() => {
+                document.getElementById('rouletteText').textContent = '結果を確認中...';
+                canvas.classList.add('zooming');
+                pointer.classList.add('zooming');
+                dart.classList.add('zooming');
+                
+                // 拡大表示を1.5秒間保持してから停止開始
+                setTimeout(() => {
+                    stopRoulette();
+                }, 1500);
+            }, 500);
+        }, 320);
+    }, 600);
 }
 
 // ルーレットを停止
@@ -344,13 +394,23 @@ function drawRouletteWheel() {
 
 // 結果を表示
 function showResult() {
-    const result = rouletteData.selectedResult;
+    const result = rouletteData.selectedResult || counterData.selectedResult;
     const rouletteContainer = document.getElementById('rouletteContainer');
+    const counterContainer = document.getElementById('counterContainer');
     const button = document.getElementById('drawBtn');
     const resultCard = document.getElementById('resultCard');
+    const dart = document.getElementById('dart');
+    const canvas = document.getElementById('rouletteCanvas');
+    const pointer = document.querySelector('.roulette-pointer');
     
-    // ルーレットを非表示
+    // 両方の演出を非表示
     rouletteContainer.classList.remove('active');
+    counterContainer.classList.remove('active');
+    
+    // ダーツと拡大をリセット
+    dart.className = 'dart';
+    canvas.classList.remove('zooming');
+    pointer.classList.remove('zooming');
     
     // タップカウンターを再表示（次回のため）
     document.getElementById('tapCounter').style.display = 'inline-block';
@@ -399,6 +459,111 @@ function showResult() {
     setTimeout(() => {
         document.getElementById('worshipGuide').classList.add('show');
     }, 1000);
+}
+
+// === 高速カウンター演出の関数 ===
+
+// 高速カウンターの初期化
+function initCounter() {
+    counterData.currentIndex = 0;
+    counterData.isRunning = true;
+    counterData.isStopping = false;
+    counterData.speed = 50;
+    
+    const stopBtn = document.getElementById('stopBtn');
+    const fortuneDisplay = document.getElementById('fortuneDisplay');
+    
+    // ボタンを無効化
+    stopBtn.disabled = true;
+    stopBtn.classList.remove('pressed');
+    fortuneDisplay.classList.remove('slowing', 'stopped');
+    fortuneDisplay.classList.add('running');
+    
+    // カウンター開始
+    startCounter();
+    
+    // 0.5〜1.5秒後にボタンを有効化
+    const enableDelay = 500 + Math.random() * 1000;
+    setTimeout(() => {
+        if (counterData.isRunning && !counterData.isStopping) {
+            stopBtn.disabled = false;
+        }
+    }, enableDelay);
+}
+
+// カウンター開始
+function startCounter() {
+    const fortuneDisplay = document.getElementById('fortuneDisplay');
+    
+    const updateFortune = () => {
+        if (!counterData.isRunning) return;
+        
+        // ランダムに運勢を表示
+        counterData.currentIndex = Math.floor(Math.random() * omikujiResults.results.length);
+        const currentFortune = omikujiResults.results[counterData.currentIndex].fortune;
+        fortuneDisplay.textContent = currentFortune;
+        
+        // 次の更新をスケジュール
+        if (counterData.isRunning && !counterData.isStopping) {
+            counterData.interval = setTimeout(updateFortune, counterData.speed);
+        }
+    };
+    
+    updateFortune();
+}
+
+// ストップボタンを押す
+function stopCounter() {
+    if (!counterData.isRunning || counterData.isStopping) return;
+    
+    counterData.isStopping = true;
+    
+    const stopBtn = document.getElementById('stopBtn');
+    const fortuneDisplay = document.getElementById('fortuneDisplay');
+    
+    // ボタンを無効化
+    stopBtn.disabled = true;
+    stopBtn.classList.add('pressed');
+    
+    // カウンターを停止
+    clearTimeout(counterData.interval);
+    
+    // runningクラスを削除
+    fortuneDisplay.classList.remove('running');
+    fortuneDisplay.classList.add('slowing');
+    
+    // 減速処理
+    let slowdownSteps = 0;
+    const maxSlowdownSteps = 10;
+    
+    const slowDown = () => {
+        slowdownSteps++;
+        counterData.speed = 50 + (slowdownSteps * 30); // 徐々に遅くする
+        
+        // ランダムに運勢を表示
+        counterData.currentIndex = Math.floor(Math.random() * omikujiResults.results.length);
+        const currentFortune = omikujiResults.results[counterData.currentIndex].fortune;
+        fortuneDisplay.textContent = currentFortune;
+        
+        if (slowdownSteps < maxSlowdownSteps) {
+            setTimeout(slowDown, counterData.speed);
+        } else {
+            // 完全停止 - 選ばれた結果を表示
+            setTimeout(() => {
+                fortuneDisplay.textContent = counterData.selectedResult.fortune;
+                fortuneDisplay.classList.remove('slowing');
+                fortuneDisplay.classList.add('stopped');
+                counterData.isRunning = false;
+                
+                // 結果画面へ
+                setTimeout(() => {
+                    showResult();
+                }, 1500);
+            }, counterData.speed);
+        }
+    };
+    
+    slowDown();
 }
 
 // 管理者モード有効化
