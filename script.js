@@ -202,7 +202,7 @@ function showAdminResult(index) {
     const title = wg.querySelector('.worship-guide-title');
     const imgs = wg.querySelectorAll('.temple-item');
     if (result.godNumber <= 5) {
-        title.innerHTML = "①薬師堂中で参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "①薬師堂で参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
         imgs[1].style.display = "none";
     } else if (result.godNumber <= 8) {
