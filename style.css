@@ -1,0 +1,470 @@
+/* 基本設定 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    background: linear-gradient(135deg, #f5f3f0 0%, #e8e2d9 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 40px;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+}
+
+/* パスワード画面 */
+.password-screen {
+    display: block;
+}
+
+.password-screen.hidden {
+    display: none;
+}
+
+.lock-icon {
+    font-size: 72px;
+    margin-bottom: 20px;
+}
+
+.password-title {
+    color: #8b4513;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.password-desc {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+.password-input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #d4af37;
+    border-radius: 10px;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 5px;
+    margin-bottom: 20px;
+}
+
+.password-input:focus {
+    outline: none;
+    border-color: #8b4513;
+    box-shadow: 0 0 10px rgba(139, 69, 19, 0.2);
+}
+
+.password-btn {
+    background: linear-gradient(45deg, #d4af37, #ffd700);
+    color: #8b4513;
+    border: none;
+    padding: 15px 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.password-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+}
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* おみくじ画面 */
+.omikuji-screen {
+    display: none;
+}
+
+.omikuji-screen.active {
+    display: block;
+}
+
+.temple-header {
+    margin-bottom: 30px;
+}
+
+.temple-title {
+    color: #8b4513;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.temple-subtitle {
+    color: #666;
+    font-size: 18px;
+}
+
+.instructions {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.omikuji-box {
+    background: linear-gradient(135deg, #8b4513 0%, #a0541a 100%);
+    border-radius: 15px;
+    padding: 40px 20px;
+    margin-bottom: 30px;
+}
+
+.omikuji-button {
+    background: linear-gradient(45deg, #d4af37, #ffd700);
+    color: #8b4513;
+    border: none;
+    padding: 18px 50px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+    transition: all 0.3s ease;
+}
+
+.omikuji-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.6);
+}
+
+.omikuji-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 結果表示 */
+.result-section {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.result-card {
+    background: linear-gradient(135deg, #fff 0%, #f8f6f3 100%);
+    border: 3px solid #d4af37;
+    border-radius: 15px;
+    padding: 30px;
+    width: 100%;
+    display: none;
+    animation: fadeInScale 0.6s ease-out;
+    position: relative;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6),
+                0 0 40px rgba(212, 175, 55, 0.4),
+                0 0 60px rgba(212, 175, 55, 0.2);
+}
+
+.result-card::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700, #ffed4e);
+    border-radius: 15px;
+    z-index: -1;
+    background-size: 300% 300%;
+    animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.result-card.rare-glow {
+    box-shadow: 0 0 30px rgba(255, 0, 128, 0.8),
+                0 0 60px rgba(255, 0, 255, 0.6),
+                0 0 90px rgba(138, 43, 226, 0.4),
+                0 0 120px rgba(75, 0, 130, 0.3);
+    animation: fadeInScale 0.6s ease-out, rareGlowPulse 2s ease-in-out infinite;
+}
+
+.result-card.rare-glow::before {
+    background: linear-gradient(45deg, #ff1493, #ff69b4, #da70d6, #ba55d3, #9370db, #8a2be2, #ff1493);
+    background-size: 400% 400%;
+    animation: rareGradientShift 2s ease infinite;
+}
+
+@keyframes rareGlowPulse {
+    0%, 100% {
+        box-shadow: 0 0 30px rgba(255, 0, 128, 0.8),
+                    0 0 60px rgba(255, 0, 255, 0.6),
+                    0 0 90px rgba(138, 43, 226, 0.4),
+                    0 0 120px rgba(75, 0, 130, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 0, 128, 1),
+                    0 0 80px rgba(255, 0, 255, 0.8),
+                    0 0 120px rgba(138, 43, 226, 0.6),
+                    0 0 160px rgba(75, 0, 130, 0.4);
+    }
+}
+
+@keyframes rareGradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.result-card.show {
+    display: block;
+}
+
+.result-number {
+    font-size: 18px;
+    color: #8b4513;
+    margin-bottom: 15px;
+}
+
+.result-fortune {
+    font-size: 36px;
+    font-weight: bold;
+    color: #d4af37;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.result-fortune.rare {
+    background: linear-gradient(45deg, #ff1493, #ff69b4, #da70d6, #ba55d3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: rareTextShine 2s ease-in-out infinite;
+}
+
+@keyframes rareTextShine {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.3);
+    }
+}
+
+.result-message {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.result-god {
+    background: linear-gradient(135deg, #f0e6d2 0%, #e8dcc8 100%);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.god-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #8b4513;
+    margin-bottom: 5px;
+}
+
+.god-reading {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.god-info {
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 参拝案内 */
+.worship-guide {
+    margin-top: 30px;
+    background: linear-gradient(135deg, #fff9f0 0%, #fff3e6 100%);
+    border: 2px solid #d4af37;
+    border-radius: 15px;
+    padding: 25px;
+    display: none;
+    animation: fadeInScale 0.6s ease-out;
+}
+
+.worship-guide.show {
+    display: block;
+}
+
+.worship-guide-title {
+    color: #8b4513;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.temple-images {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.temple-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.temple-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.temple-label {
+    font-size: 16px;
+    color: #8b4513;
+    font-weight: bold;
+}
+
+/* 法楽寺見取り図セクション */
+.map-section {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 2px dashed #d4af37;
+}
+
+.map-title {
+    color: #8b4513;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.map-container {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.temple-map {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+}
+
+/* 管理者用ナビゲーション */
+.admin-navigation {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 10px;
+}
+
+.admin-navigation.show {
+    display: flex;
+}
+
+.admin-btn {
+    background: linear-gradient(45deg, #6c757d, #5a6268);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.admin-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+.admin-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.admin-counter {
+    font-size: 16px;
+    font-weight: bold;
+    color: #8b4513;
+    min-width: 80px;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+
+    .temple-title {
+        font-size: 20px;
+    }
+
+    .result-fortune {
+        font-size: 28px;
+    }
+
+    .omikuji-button {
+        padding: 15px 40px;
+        font-size: 16px;
+    }
+}
