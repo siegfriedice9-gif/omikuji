@@ -64,6 +64,21 @@ const omikujiResults = {
     ]
 };
 
+// ルーレット用の変数（タップ3回、緩急強調版）
+let rouletteData = {
+    canvas: null,
+    ctx: null,
+    rotation: 0,
+    rotationSpeed: 0.02,  // 初期速度を遅く（0.05 → 0.02）
+    maxSpeed: 0.6,        // 最高速度を速く（0.5 → 0.6）
+    tapCount: 0,
+    maxTaps: 3,           // タップ回数を3回に変更
+    isSpinning: false,
+    isStopping: false,
+    selectedResult: null,
+    animationFrame: null
+};
+
 // パスワードチェック
 function checkPassword() {
     const input = document.getElementById('passwordInput').value;
@@ -109,64 +124,281 @@ function showOmikujiScreen() {
 function drawOmikuji() {
     const button = document.getElementById('drawBtn');
     const resultCard = document.getElementById('resultCard');
+    const rouletteContainer = document.getElementById('rouletteContainer');
     
-    button.disabled = true;
-    button.classList.add('spinning');
-    button.textContent = '🔄 引いています...';
+    // ボタンを隠して演出開始
+    button.style.display = 'none';
     resultCard.classList.remove('show', 'rare-glow');
     document.getElementById('worshipGuide').classList.remove('show');
     
-    // ランダムに結果を選択
-    const idx = Math.floor(Math.random() * omikujiResults.results.length);
-    const result = omikujiResults.results[idx];
+    // ルーレット演出を表示
+    rouletteContainer.classList.add('active');
     
-    // 1.5秒待機してから結果表示
-    setTimeout(() => {
-        document.getElementById('resultNumber').textContent = `第${result.number}番`;
-        document.getElementById('resultFortune').textContent = result.fortune;
-        document.getElementById('resultMessage').textContent = result.message;
+    // ルーレットを初期化
+    initRoulette();
+    
+    // ランダムに結果を選択（事前に決定）
+    const idx = Math.floor(Math.random() * omikujiResults.results.length);
+    rouletteData.selectedResult = omikujiResults.results[idx];
+}
+
+// ルーレットの初期化
+function initRoulette() {
+    rouletteData.canvas = document.getElementById('rouletteCanvas');
+    rouletteData.ctx = rouletteData.canvas.getContext('2d');
+    rouletteData.rotation = 0;
+    rouletteData.rotationSpeed = 0.02;  // 初期速度を遅く
+    rouletteData.tapCount = 0;
+    rouletteData.isSpinning = true;
+    rouletteData.isStopping = false;
+    
+    // タップカウンターをリセット
+    document.getElementById('remainingTaps').textContent = rouletteData.maxTaps;
+    document.getElementById('rouletteText').textContent = '画面をタップしてください！';
+    document.getElementById('rouletteText').classList.remove('stopping');
+    
+    // タップイベントを設定
+    const container = document.getElementById('rouletteContainer');
+    container.onclick = handleRouletteTap;
+    
+    // ルーレットを描画開始
+    drawRouletteWheel();
+}
+
+// ルーレットをタップ
+function handleRouletteTap() {
+    if (rouletteData.isStopping || !rouletteData.isSpinning) return;
+    
+    rouletteData.tapCount++;
+    const remaining = rouletteData.maxTaps - rouletteData.tapCount;
+    
+    // タップエフェクト
+    const canvas = document.getElementById('rouletteCanvas');
+    canvas.classList.add('tap-effect');
+    setTimeout(() => canvas.classList.remove('tap-effect'), 100);
+    
+    // 回転速度を大幅に上げる（緩急を強調）
+    rouletteData.rotationSpeed = Math.min(
+        rouletteData.rotationSpeed + 0.15,  // 加速量を大幅アップ（0.08 → 0.15）
+        rouletteData.maxSpeed
+    );
+    
+    // 残りタップ数を更新
+    if (remaining > 0) {
+        document.getElementById('remainingTaps').textContent = remaining;
+        // アニメーションをトリガー
+        const span = document.getElementById('remainingTaps');
+        span.style.animation = 'none';
+        setTimeout(() => span.style.animation = 'tapCountBounce 0.3s ease', 10);
+    }
+    
+    // 3回タップしたら停止開始
+    if (rouletteData.tapCount >= rouletteData.maxTaps) {
+        stopRoulette();
+    }
+}
+
+// ルーレットを停止
+function stopRoulette() {
+    rouletteData.isStopping = true;
+    document.getElementById('rouletteText').textContent = '停止中...';
+    document.getElementById('rouletteText').classList.add('stopping');
+    document.getElementById('tapCounter').style.display = 'none';
+    
+    // クリックイベントを無効化
+    document.getElementById('rouletteContainer').onclick = null;
+    
+    // 選択された結果に対応する角度を計算
+    const selectedIndex = omikujiResults.results.findIndex(
+        r => r.number === rouletteData.selectedResult.number
+    );
+    const sectionCount = omikujiResults.results.length;
+    const anglePerSection = (Math.PI * 2) / sectionCount;
+    
+    // 目標角度を計算（上部のポインター▼に合わせる）
+    // ポインターは上部（-Math.PI/2の位置）にあるので、選択されたセクションの中央が上に来るようにする
+    const targetAngle = -(selectedIndex * anglePerSection + anglePerSection / 2) - (Math.PI / 2);
+    
+    // 現在の角度を0〜2πの範囲に正規化
+    let currentAngle = rouletteData.rotation % (Math.PI * 2);
+    if (currentAngle < 0) currentAngle += Math.PI * 2;
+    
+    // 目標角度も0〜2πの範囲に正規化
+    let normalizedTarget = targetAngle % (Math.PI * 2);
+    if (normalizedTarget < 0) normalizedTarget += Math.PI * 2;
+    
+    // 最低でも4回転させる（より長い演出）
+    const minRotations = 4;
+    const finalTarget = rouletteData.rotation - currentAngle + normalizedTarget + (Math.PI * 2 * minRotations);
+    
+    // イージングを使った減速アニメーション
+    const startRotation = rouletteData.rotation;
+    const startTime = Date.now();
+    const duration = 3500; // 3.5秒かけて停止（より長く）
+    
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    
+    const animateStop = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutCubic(progress);
         
-        // ご縁仏の情報を表示
-        const godHtml = `
-            <div class="god-name">${result.god}</div>
-            <div class="god-reading">(${result.godReading})</div>
-            <div class="god-info">ご縁仏の番号: ${result.godNumber}</div>
-        `;
-        document.getElementById('resultGod').innerHTML = godHtml;
+        rouletteData.rotation = startRotation + (finalTarget - startRotation) * easedProgress;
         
-        const fortuneElement = document.getElementById('resultFortune');
-        fortuneElement.classList.remove('rare');
-        resultCard.classList.remove('rare-glow');
-        
-        resultCard.classList.add('show');
-        
-        // 参拝案内の表示内容切替（ご縁仏番号）
-        const wg = document.getElementById('worshipGuide');
-        const title = wg.querySelector('.worship-guide-title');
-        const imgs = wg.querySelectorAll('.temple-item');
-        if (result.godNumber <= 5) {
-            title.innerHTML = "①薬師堂中で参拝されまして<br>より深いご利益をお授かりください。";
-            imgs[0].style.display = "block";
-            imgs[1].style.display = "none";
-        } else if (result.godNumber <= 8) {
-            title.innerHTML = "②光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
-            imgs[0].style.display = "none";
-            imgs[1].style.display = "block";
+        if (progress < 1) {
+            rouletteData.animationFrame = requestAnimationFrame(animateStop);
         } else {
-            title.innerHTML = "①薬師堂と②光龍閣で<br>参拝されまして<br>より深いご利益をお授かりください。";
-            imgs[0].style.display = "block";
-            imgs[1].style.display = "block";
+            // 完全停止
+            rouletteData.rotation = finalTarget;
+            rouletteData.rotationSpeed = 0;
+            rouletteData.isSpinning = false;
+            
+            // 最後に一度描画
+            drawRouletteWheel();
+            
+            // 結果を表示
+            setTimeout(showResult, 800);
         }
+    };
+    
+    // 通常の回転を停止
+    rouletteData.rotationSpeed = 0;
+    
+    // イージングアニメーション開始
+    animateStop();
+}
+
+// ルーレットホイールを描画
+function drawRouletteWheel() {
+    const canvas = rouletteData.canvas;
+    const ctx = rouletteData.ctx;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 180;
+    
+    // キャンバスをクリア
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 回転を更新（通常回転中のみ）
+    if (rouletteData.isSpinning && rouletteData.rotationSpeed > 0) {
+        rouletteData.rotation += rouletteData.rotationSpeed;
+    }
+    
+    // 54個のセクションを描画
+    const sectionCount = omikujiResults.results.length;
+    const anglePerSection = (Math.PI * 2) / sectionCount;
+    
+    for (let i = 0; i < sectionCount; i++) {
+        const startAngle = rouletteData.rotation + (i * anglePerSection);
+        const endAngle = startAngle + anglePerSection;
         
-        // 参拝案内を遅延表示（結果表示の1.5秒後）
-        setTimeout(() => {
-            document.getElementById('worshipGuide').classList.add('show');
-        }, 1500);
+        // セクションの色（交互）
+        const colors = ['#d4af37', '#ffd700', '#8b4513', '#a0541a'];
+        ctx.fillStyle = colors[i % colors.length];
         
-        button.classList.remove('spinning');
-        button.disabled = false;
-        button.textContent = '🎋 おみくじを引く';
-    }, 1500);
+        // セクションを描画
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 境界線
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // 番号を描画
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + anglePerSection / 2);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText(omikujiResults.results[i].number, radius * 0.7, 0);
+        ctx.restore();
+    }
+    
+    // 中央の円
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
+    ctx.fillStyle = '#8b4513';
+    ctx.fill();
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    // 中央のテキスト
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('おみくじ', centerX, centerY);
+    
+    // 次のフレームをリクエスト（通常回転中または停止アニメーション中）
+    if ((rouletteData.isSpinning && rouletteData.rotationSpeed > 0) || rouletteData.isStopping) {
+        rouletteData.animationFrame = requestAnimationFrame(drawRouletteWheel);
+    }
+}
+
+// 結果を表示
+function showResult() {
+    const result = rouletteData.selectedResult;
+    const rouletteContainer = document.getElementById('rouletteContainer');
+    const button = document.getElementById('drawBtn');
+    const resultCard = document.getElementById('resultCard');
+    
+    // ルーレットを非表示
+    rouletteContainer.classList.remove('active');
+    
+    // タップカウンターを再表示（次回のため）
+    document.getElementById('tapCounter').style.display = 'inline-block';
+    
+    // ボタンを再表示
+    button.style.display = 'inline-block';
+    
+    // 結果を表示
+    document.getElementById('resultNumber').textContent = `第${result.number}番`;
+    document.getElementById('resultFortune').textContent = result.fortune;
+    document.getElementById('resultMessage').textContent = result.message;
+    
+    // ご縁仏の情報を表示
+    const godHtml = `
+        <div class="god-name">${result.god}</div>
+        <div class="god-reading">(${result.godReading})</div>
+        <div class="god-info">ご縁仏の番号: ${result.godNumber}</div>
+    `;
+    document.getElementById('resultGod').innerHTML = godHtml;
+    
+    const fortuneElement = document.getElementById('resultFortune');
+    fortuneElement.classList.remove('rare');
+    resultCard.classList.remove('rare-glow');
+    
+    resultCard.classList.add('show');
+    
+    // 参拝案内の表示内容切替（ご縁仏番号）
+    const wg = document.getElementById('worshipGuide');
+    const title = wg.querySelector('.worship-guide-title');
+    const imgs = wg.querySelectorAll('.temple-item');
+    if (result.godNumber <= 5) {
+        title.innerHTML = "①薬師堂中で参拝されまして<br>より深いご利益をお授かりください。";
+        imgs[0].style.display = "block";
+        imgs[1].style.display = "none";
+    } else if (result.godNumber <= 8) {
+        title.innerHTML = "②光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
+        imgs[0].style.display = "none";
+        imgs[1].style.display = "block";
+    } else {
+        title.innerHTML = "①薬師堂と②光龍閣で<br>参拝されまして<br>より深いご利益をお授かりください。";
+        imgs[0].style.display = "block";
+        imgs[1].style.display = "block";
+    }
+    
+    // 参拝案内を遅延表示（結果表示の1秒後）
+    setTimeout(() => {
+        document.getElementById('worshipGuide').classList.add('show');
+    }, 1000);
 }
 
 // 管理者モード有効化
@@ -202,7 +434,7 @@ function showAdminResult(index) {
     const title = wg.querySelector('.worship-guide-title');
     const imgs = wg.querySelectorAll('.temple-item');
     if (result.godNumber <= 5) {
-        title.innerHTML = "①薬師堂で参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "①薬師堂中で参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
         imgs[1].style.display = "none";
     } else if (result.godNumber <= 8) {

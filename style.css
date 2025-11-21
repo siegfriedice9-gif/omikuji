@@ -467,4 +467,126 @@ body {
         padding: 15px 40px;
         font-size: 16px;
     }
+    
+    #rouletteCanvas {
+        width: 300px !important;
+        height: 300px !important;
+    }
+}
+
+/* ルーレット回転演出 */
+.roulette-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 450px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.roulette-container.active {
+    display: flex;
+}
+
+#rouletteCanvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+    transition: transform 0.1s ease;
+}
+
+#rouletteCanvas.tap-effect {
+    transform: scale(0.95);
+}
+
+.roulette-pointer {
+    position: absolute;
+    top: 10px;
+    font-size: 40px;
+    color: #ff0000;
+    filter: drop-shadow(0 5px 10px rgba(255,0,0,0.5));
+    animation: pointerBounce 0.5s ease-in-out infinite;
+    z-index: 10;
+}
+
+@keyframes pointerBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(5px);
+    }
+}
+
+.roulette-message {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.roulette-text {
+    color: #ffd700;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+    animation: textPulse 1s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.tap-counter {
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    background: rgba(212, 175, 55, 0.3);
+    padding: 10px 20px;
+    border-radius: 25px;
+    display: inline-block;
+}
+
+#remainingTaps {
+    color: #ffd700;
+    font-size: 32px;
+    display: inline-block;
+    animation: tapCountBounce 0.3s ease;
+}
+
+@keyframes tapCountBounce {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.roulette-text.stopping {
+    color: #ff6b6b;
+    animation: stopFlash 0.3s ease-in-out 3;
+}
+
+@keyframes stopFlash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
 }

@@ -40,6 +40,16 @@
                 <button id="drawBtn" class="omikuji-button" onclick="drawOmikuji()">
                     🎋 おみくじを引く
                 </button>
+                
+                <!-- ルーレット回転演出 -->
+                <div id="rouletteContainer" class="roulette-container">
+                    <canvas id="rouletteCanvas" width="400" height="400"></canvas>
+                    <div class="roulette-pointer">▼</div>
+                    <div class="roulette-message">
+                        <p id="rouletteText" class="roulette-text">画面をタップしてください！</p>
+                        <p id="tapCounter" class="tap-counter">あと<span id="remainingTaps">3</span>回タップ！</p>
+                    </div>
+                </div>
             </div>
 
             <!-- 管理者用ナビゲーション -->
