@@ -4,6 +4,34 @@ const adminPassword = "2256";
 let isAdminMode = false;
 let currentIndex = 0;
 
+// アクセスカウンター機能
+function initAccessCounter() {
+    // LocalStorageからアクセス数を取得
+    let accessCount = localStorage.getItem('omikuji_access_count');
+    
+    if (accessCount === null) {
+        accessCount = 1;
+    } else {
+        accessCount = parseInt(accessCount) + 1;
+    }
+    
+    // LocalStorageに保存
+    localStorage.setItem('omikuji_access_count', accessCount);
+    
+    // 画面に表示
+    const counterElement = document.getElementById('accessCounter');
+    if (counterElement) {
+        counterElement.textContent = `あなたは${accessCount}回目のアクセスです`;
+    }
+}
+
+// バイブレーション機能
+function vibrate(pattern) {
+    if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+    }
+}
+
 // おみくじデータ
 const omikujiResults = {
     results: [
@@ -129,6 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function showOmikujiScreen() {
     document.getElementById('passwordScreen').classList.add('hidden');
     document.getElementById('omikujiScreen').classList.add('active');
+    
+    // アクセスカウンターを初期化
+    initAccessCounter();
 }
 
 // おみくじを引く
@@ -228,6 +259,9 @@ function handleRouletteTap() {
         dart.classList.remove('flying');
         dart.classList.add('stuck', 'vibrating');
         
+        // 刺さった瞬間にバイブレーション
+        vibrate(100);
+        
         // 振動を0.3秒後に停止
         setTimeout(() => {
             dart.classList.remove('vibrating');
@@ -257,6 +291,9 @@ function stopRoulette() {
     
     // クリックイベントを無効化
     document.getElementById('rouletteContainer').onclick = null;
+    
+    // バイブレーション開始（3.5秒間継続）
+    vibrate([100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100]);
     
     // 選択された結果に対応する角度を計算
     const selectedIndex = omikujiResults.results.findIndex(
@@ -305,6 +342,9 @@ function stopRoulette() {
             
             // 最後に一度描画
             drawRouletteWheel();
+            
+            // 停止時に強めのバイブレーション
+            vibrate(200);
             
             // 結果を表示
             setTimeout(showResult, 800);
@@ -532,6 +572,9 @@ function stopCounter() {
     fortuneDisplay.classList.remove('running');
     fortuneDisplay.classList.add('slowing');
     
+    // バイブレーション開始（減速中）
+    vibrate([50, 30, 50, 30, 50, 30, 50, 30, 50, 30, 50, 30, 50, 30, 50]);
+    
     // 減速処理
     let slowdownSteps = 0;
     const maxSlowdownSteps = 10;
@@ -554,6 +597,9 @@ function stopCounter() {
                 fortuneDisplay.classList.remove('slowing');
                 fortuneDisplay.classList.add('stopped');
                 counterData.isRunning = false;
+                
+                // 停止時に強めのバイブレーション
+                vibrate(200);
                 
                 // 結果画面へ
                 setTimeout(() => {

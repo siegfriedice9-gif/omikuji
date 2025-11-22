@@ -123,6 +123,13 @@ body {
     font-size: 18px;
 }
 
+.access-counter {
+    color: #999;
+    font-size: 12px;
+    margin-top: 5px;
+    font-style: italic;
+}
+
 .instructions {
     background: #f9f9f9;
     padding: 15px;
