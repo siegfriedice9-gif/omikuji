@@ -1,6 +1,8 @@
 // パスワード設定
-const correctPassword = "1234";
-const adminPassword = "2256";
+const simplePassword = "1234";    // 演出なし版
+const normalPassword = "5678";    // 通常版（3つの演出）
+const adminPassword = "2256";     // 管理者版
+let currentMode = 'simple';       // 'simple', 'normal', 'admin'
 let isAdminMode = false;
 let currentIndex = 0;
 
@@ -112,18 +114,28 @@ function checkPassword() {
     console.log('パスワードチェック開始');
     console.log('入力されたパスワード:', input);
     
-    if (input === correctPassword) {
-        console.log('通常モードでログイン成功');
+    if (input === simplePassword) {
+        console.log('演出なし版モードでログイン成功');
+        currentMode = 'simple';
         isAdminMode = false;
         sessionStorage.setItem('omikuji_auth', 'true');
-        sessionStorage.setItem('omikuji_admin', 'false');
+        sessionStorage.setItem('omikuji_mode', 'simple');
+        errorMsg.classList.remove('show');
+        showOmikujiScreen();
+    } else if (input === normalPassword) {
+        console.log('通常版モードでログイン成功');
+        currentMode = 'normal';
+        isAdminMode = false;
+        sessionStorage.setItem('omikuji_auth', 'true');
+        sessionStorage.setItem('omikuji_mode', 'normal');
         errorMsg.classList.remove('show');
         showOmikujiScreen();
     } else if (input === adminPassword) {
         console.log('管理者モードでログイン成功');
+        currentMode = 'admin';
         isAdminMode = true;
         sessionStorage.setItem('omikuji_auth', 'true');
-        sessionStorage.setItem('omikuji_admin', 'true');
+        sessionStorage.setItem('omikuji_mode', 'admin');
         errorMsg.classList.remove('show');
         showOmikujiScreen();
         enableAdminMode();
@@ -199,6 +211,7 @@ function showOmikujiScreen() {
 function drawOmikuji() {
     console.log('========================================');
     console.log('drawOmikuji() が呼び出されました！');
+    console.log('現在のモード:', currentMode);
     console.log('========================================');
     
     const button = document.getElementById('drawBtn');
@@ -228,42 +241,65 @@ function drawOmikuji() {
     const idx = Math.floor(Math.random() * omikujiResults.results.length);
     const selectedResult = omikujiResults.results[idx];
     
-    // ランダムに演出を選択（33%ずつの確率）
-    const randomValue = Math.random();
-    let enshutuType;
-    
-    if (randomValue < 0.33) {
-        enshutuType = 'roulette';
-    } else if (randomValue < 0.66) {
-        enshutuType = 'counter';
-    } else {
-        enshutuType = 'minecraft';
-    }
-    
-    console.log('選択された演出:', enshutuType);
-    console.log('選択された結果:', selectedResult);
-    
-    // すべての演出を非表示
-    rouletteContainer.classList.remove('active');
-    counterContainer.classList.remove('active');
-    minecraftContainer.classList.remove('active');
-    
-    if (enshutuType === 'roulette') {
-        // ルーレット演出
-        rouletteContainer.classList.add('active');
+    // モードによって処理を分岐
+    if (currentMode === 'simple') {
+        // 演出なし版：すぐに結果を表示
+        console.log('演出なし版：即座に結果を表示します');
         rouletteData.selectedResult = selectedResult;
-        initRoulette();
-    } else if (enshutuType === 'counter') {
-        // 高速カウンター演出
-        counterContainer.classList.add('active');
         counterData.selectedResult = selectedResult;
-        initCounter();
-    } else {
-        // マインクラフト演出
-        console.log('マインクラフト演出開始');
-        minecraftContainer.classList.add('active');
         minecraftData.selectedResult = selectedResult;
-        initMinecraft();
+        
+        // すべての演出を非表示
+        rouletteContainer.classList.remove('active');
+        counterContainer.classList.remove('active');
+        minecraftContainer.classList.remove('active');
+        
+        // 少し待ってから結果を表示（ボタンが消える演出のため）
+        setTimeout(() => {
+            showResult();
+        }, 300);
+        
+    } else {
+        // 通常版：3つの演出のいずれかをランダムに選択
+        console.log('通常版：演出を選択します');
+        
+        // ランダムに演出を選択（33%ずつの確率）
+        const randomValue = Math.random();
+        let enshutuType;
+        
+        if (randomValue < 0.33) {
+            enshutuType = 'roulette';
+        } else if (randomValue < 0.66) {
+            enshutuType = 'counter';
+        } else {
+            enshutuType = 'minecraft';
+        }
+        
+        console.log('選択された演出:', enshutuType);
+        console.log('選択された結果:', selectedResult);
+        
+        // すべての演出を非表示
+        rouletteContainer.classList.remove('active');
+        counterContainer.classList.remove('active');
+        minecraftContainer.classList.remove('active');
+        
+        if (enshutuType === 'roulette') {
+            // ルーレット演出
+            rouletteContainer.classList.add('active');
+            rouletteData.selectedResult = selectedResult;
+            initRoulette();
+        } else if (enshutuType === 'counter') {
+            // 高速カウンター演出
+            counterContainer.classList.add('active');
+            counterData.selectedResult = selectedResult;
+            initCounter();
+        } else {
+            // マインクラフト演出
+            console.log('マインクラフト演出開始');
+            minecraftContainer.classList.add('active');
+            minecraftData.selectedResult = selectedResult;
+            initMinecraft();
+        }
     }
 }
 
@@ -571,7 +607,30 @@ function showResult() {
     // 参拝案内を遅延表示（結果表示の1秒後）
     setTimeout(() => {
         document.getElementById('worshipGuide').classList.add('show');
+        
+        // 参拝案内が表示された後、ゆっくりスクロール（さらに0.5秒後）
+        setTimeout(() => {
+            scrollToWorshipGuide();
+        }, 500);
     }, 1000);
+}
+
+// 参拝案内までゆっくりスクロールする関数
+function scrollToWorshipGuide() {
+    const worshipGuide = document.getElementById('worshipGuide');
+    
+    if (worshipGuide) {
+        console.log('参拝案内までスクロールします');
+        
+        // スムーズスクロール
+        worshipGuide.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+        
+        // バイブレーション（スクロール開始時）
+        vibrate(50);
+    }
 }
 
 // === 高速カウンター演出の関数 ===
@@ -733,6 +792,11 @@ function showAdminResult(index) {
     
     document.getElementById('worshipGuide').classList.add('show');
     
+    // 参拝案内が表示された後、ゆっくりスクロール
+    setTimeout(() => {
+        scrollToWorshipGuide();
+    }, 500);
+    
     // カウンター更新
     document.getElementById('adminCounter').textContent = `${index + 1} / ${omikujiResults.results.length}`;
     
@@ -761,9 +825,27 @@ function showNext() {
 if (sessionStorage.getItem('omikuji_auth') === 'true') {
     console.log('セッションストレージから認証状態を復元します');
     document.addEventListener('DOMContentLoaded', function() {
+        const savedMode = sessionStorage.getItem('omikuji_mode');
+        console.log('保存されたモード:', savedMode);
+        
+        if (savedMode === 'simple') {
+            currentMode = 'simple';
+            isAdminMode = false;
+            console.log('演出なし版モードを復元');
+        } else if (savedMode === 'normal') {
+            currentMode = 'normal';
+            isAdminMode = false;
+            console.log('通常版モードを復元');
+        } else if (savedMode === 'admin') {
+            currentMode = 'admin';
+            isAdminMode = true;
+            console.log('管理者モードを復元');
+        }
+        
         console.log('認証済みのため、おみくじ画面を表示します');
         showOmikujiScreen();
-        if (sessionStorage.getItem('omikuji_admin') === 'true') {
+        
+        if (isAdminMode) {
             console.log('管理者モードを有効化します');
             enableAdminMode();
         }

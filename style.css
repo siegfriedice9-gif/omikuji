@@ -5,6 +5,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
     background: linear-gradient(135deg, #f5f3f0 0%, #e8e2d9 100%);
