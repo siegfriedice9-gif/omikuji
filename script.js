@@ -4,27 +4,6 @@ const adminPassword = "2256";
 let isAdminMode = false;
 let currentIndex = 0;
 
-// アクセスカウンター機能
-function initAccessCounter() {
-    // LocalStorageからアクセス数を取得
-    let accessCount = localStorage.getItem('omikuji_access_count');
-    
-    if (accessCount === null) {
-        accessCount = 1;
-    } else {
-        accessCount = parseInt(accessCount) + 1;
-    }
-    
-    // LocalStorageに保存
-    localStorage.setItem('omikuji_access_count', accessCount);
-    
-    // 画面に表示
-    const counterElement = document.getElementById('accessCounter');
-    if (counterElement) {
-        counterElement.textContent = `あなたは${accessCount}回目のアクセスです`;
-    }
-}
-
 // バイブレーション機能
 function vibrate(pattern) {
     if ('vibrate' in navigator) {
@@ -118,18 +97,30 @@ let counterData = {
     speed: 50  // 初期速度（ミリ秒）
 };
 
+// マインクラフト用の変数
+let minecraftData = {
+    totalBlocks: 9,
+    brokenBlocks: 0,
+    selectedResult: null
+};
+
 // パスワードチェック
 function checkPassword() {
     const input = document.getElementById('passwordInput').value;
     const errorMsg = document.getElementById('errorMessage');
     
+    console.log('パスワードチェック開始');
+    console.log('入力されたパスワード:', input);
+    
     if (input === correctPassword) {
+        console.log('通常モードでログイン成功');
         isAdminMode = false;
         sessionStorage.setItem('omikuji_auth', 'true');
         sessionStorage.setItem('omikuji_admin', 'false');
         errorMsg.classList.remove('show');
         showOmikujiScreen();
     } else if (input === adminPassword) {
+        console.log('管理者モードでログイン成功');
         isAdminMode = true;
         sessionStorage.setItem('omikuji_auth', 'true');
         sessionStorage.setItem('omikuji_admin', 'true');
@@ -137,6 +128,7 @@ function checkPassword() {
         showOmikujiScreen();
         enableAdminMode();
     } else {
+        console.log('パスワードが間違っています');
         errorMsg.classList.add('show');
         document.getElementById('passwordInput').value = '';
         document.getElementById('passwordInput').focus();
@@ -145,29 +137,87 @@ function checkPassword() {
 
 // Enterキーでパスワード送信
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('ページ読み込み完了');
+    
     const passwordInput = document.getElementById('passwordInput');
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
+        console.log('パスワード入力欄: OK');
+    } else {
+        console.error('パスワード入力欄が見つかりません');
+    }
+    
+    // おみくじボタンの確認
+    const drawBtn = document.getElementById('drawBtn');
+    if (drawBtn) {
+        console.log('おみくじボタン: OK');
+        console.log('ボタンの表示状態:', window.getComputedStyle(drawBtn).display);
+        
+        // ボタンのクリックイベントも追加で設定（onclickが動かない場合の保険）
+        drawBtn.addEventListener('click', function(e) {
+            console.log('ボタンがクリックされました（addEventListener経由）');
+            // onclickが設定されている場合は重複実行を防ぐ
+            if (!drawBtn.onclick) {
+                drawOmikuji();
+            }
+        });
+    } else {
+        console.error('おみくじボタンが見つかりません');
     }
 });
 
 // おみくじ画面表示
 function showOmikujiScreen() {
-    document.getElementById('passwordScreen').classList.add('hidden');
-    document.getElementById('omikujiScreen').classList.add('active');
+    console.log('showOmikujiScreen() 呼び出し');
+    const passwordScreen = document.getElementById('passwordScreen');
+    const omikujiScreen = document.getElementById('omikujiScreen');
     
-    // アクセスカウンターを初期化
-    initAccessCounter();
+    console.log('passwordScreen:', passwordScreen);
+    console.log('omikujiScreen:', omikujiScreen);
+    
+    passwordScreen.classList.add('hidden');
+    omikujiScreen.classList.add('active');
+    
+    console.log('おみくじ画面を表示しました');
+    
+    // ボタンが表示されているか確認
+    setTimeout(() => {
+        const drawBtn = document.getElementById('drawBtn');
+        if (drawBtn) {
+            const displayStyle = window.getComputedStyle(drawBtn).display;
+            console.log('おみくじボタンの表示状態:', displayStyle);
+            if (displayStyle === 'none') {
+                console.warn('警告: おみくじボタンが非表示です！');
+            }
+        }
+    }, 100);
 }
 
 // おみくじを引く
 function drawOmikuji() {
+    console.log('========================================');
+    console.log('drawOmikuji() が呼び出されました！');
+    console.log('========================================');
+    
     const button = document.getElementById('drawBtn');
     const resultCard = document.getElementById('resultCard');
     const rouletteContainer = document.getElementById('rouletteContainer');
     const counterContainer = document.getElementById('counterContainer');
+    const minecraftContainer = document.getElementById('minecraftContainer');
+    
+    console.log('要素の確認:');
+    console.log('- button:', button);
+    console.log('- resultCard:', resultCard);
+    console.log('- rouletteContainer:', rouletteContainer);
+    console.log('- counterContainer:', counterContainer);
+    console.log('- minecraftContainer:', minecraftContainer);
+    
+    if (!button) {
+        console.error('エラー: drawBtn が見つかりません！');
+        return;
+    }
     
     // ボタンを隠して演出開始
     button.style.display = 'none';
@@ -178,21 +228,42 @@ function drawOmikuji() {
     const idx = Math.floor(Math.random() * omikujiResults.results.length);
     const selectedResult = omikujiResults.results[idx];
     
-    // ランダムに演出を選択（50%の確率でルーレットかカウンター）
-    const useRoulette = Math.random() < 0.5;
+    // ランダムに演出を選択（33%ずつの確率）
+    const randomValue = Math.random();
+    let enshutuType;
     
-    if (useRoulette) {
+    if (randomValue < 0.33) {
+        enshutuType = 'roulette';
+    } else if (randomValue < 0.66) {
+        enshutuType = 'counter';
+    } else {
+        enshutuType = 'minecraft';
+    }
+    
+    console.log('選択された演出:', enshutuType);
+    console.log('選択された結果:', selectedResult);
+    
+    // すべての演出を非表示
+    rouletteContainer.classList.remove('active');
+    counterContainer.classList.remove('active');
+    minecraftContainer.classList.remove('active');
+    
+    if (enshutuType === 'roulette') {
         // ルーレット演出
         rouletteContainer.classList.add('active');
-        counterContainer.classList.remove('active');
         rouletteData.selectedResult = selectedResult;
         initRoulette();
-    } else {
+    } else if (enshutuType === 'counter') {
         // 高速カウンター演出
         counterContainer.classList.add('active');
-        rouletteContainer.classList.remove('active');
         counterData.selectedResult = selectedResult;
         initCounter();
+    } else {
+        // マインクラフト演出
+        console.log('マインクラフト演出開始');
+        minecraftContainer.classList.add('active');
+        minecraftData.selectedResult = selectedResult;
+        initMinecraft();
     }
 }
 
@@ -434,18 +505,20 @@ function drawRouletteWheel() {
 
 // 結果を表示
 function showResult() {
-    const result = rouletteData.selectedResult || counterData.selectedResult;
+    const result = rouletteData.selectedResult || counterData.selectedResult || minecraftData.selectedResult;
     const rouletteContainer = document.getElementById('rouletteContainer');
     const counterContainer = document.getElementById('counterContainer');
+    const minecraftContainer = document.getElementById('minecraftContainer');
     const button = document.getElementById('drawBtn');
     const resultCard = document.getElementById('resultCard');
     const dart = document.getElementById('dart');
     const canvas = document.getElementById('rouletteCanvas');
     const pointer = document.querySelector('.roulette-pointer');
     
-    // 両方の演出を非表示
+    // すべての演出を非表示
     rouletteContainer.classList.remove('active');
     counterContainer.classList.remove('active');
+    minecraftContainer.classList.remove('active');
     
     // ダーツと拡大をリセット
     dart.className = 'dart';
@@ -686,10 +759,165 @@ function showNext() {
 
 // セッションストレージから状態を復元
 if (sessionStorage.getItem('omikuji_auth') === 'true') {
+    console.log('セッションストレージから認証状態を復元します');
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('認証済みのため、おみくじ画面を表示します');
         showOmikujiScreen();
         if (sessionStorage.getItem('omikuji_admin') === 'true') {
+            console.log('管理者モードを有効化します');
             enableAdminMode();
         }
     });
+}
+
+// === マインクラフト演出の関数 ===
+
+// マインクラフト演出の初期化
+function initMinecraft() {
+    console.log('initMinecraft() 開始');
+    minecraftData.brokenBlocks = 0;
+    
+    const blockGrid = document.getElementById('blockGrid');
+    const treasureChest = document.getElementById('treasureChest');
+    
+    console.log('blockGrid:', blockGrid);
+    console.log('treasureChest:', treasureChest);
+    
+    if (!blockGrid) {
+        console.error('blockGrid要素が見つかりません！');
+        return;
+    }
+    
+    if (!treasureChest) {
+        console.error('treasureChest要素が見つかりません！');
+        return;
+    }
+    
+    // 既存のブロックをクリア
+    blockGrid.innerHTML = '';
+    treasureChest.classList.remove('show', 'opening');
+    treasureChest.style.display = 'none';
+    
+    // 9個のブロックを生成
+    for (let i = 0; i < minecraftData.totalBlocks; i++) {
+        const block = document.createElement('div');
+        block.className = 'block';
+        block.setAttribute('data-index', i);
+        block.style.cursor = 'pointer';
+        
+        // タッチとクリック両方に対応
+        block.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('ブロック' + i + 'がクリックされました');
+            breakBlock(this);
+        });
+        
+        block.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('ブロック' + i + 'がタッチされました');
+            breakBlock(this);
+        });
+        
+        blockGrid.appendChild(block);
+    }
+    
+    console.log('ブロック生成完了:', blockGrid.children.length + '個');
+    
+    // ブロックが正しく表示されているか確認
+    setTimeout(() => {
+        const blocks = blockGrid.querySelectorAll('.block');
+        console.log('表示されているブロック数:', blocks.length);
+        blocks.forEach((block, index) => {
+            console.log('ブロック' + index + ':', block);
+        });
+    }, 100);
+}
+
+// ブロックを壊す
+function breakBlock(blockElement) {
+    console.log('breakBlock() 呼び出し');
+    
+    if (!blockElement) {
+        console.error('blockElement が null です');
+        return;
+    }
+    
+    if (blockElement.classList.contains('breaking')) {
+        console.log('既に壊れているブロックです');
+        return;
+    }
+    
+    console.log('ブロックを壊します');
+    blockElement.classList.add('breaking');
+    blockElement.style.pointerEvents = 'none';
+    
+    // ブロック破壊時のバイブレーション
+    vibrate(50);
+    
+    minecraftData.brokenBlocks++;
+    console.log('壊れたブロック数:', minecraftData.brokenBlocks, '/', minecraftData.totalBlocks);
+    
+    // すべてのブロックを壊したら宝箱を表示
+    if (minecraftData.brokenBlocks >= minecraftData.totalBlocks) {
+        console.log('全ブロック破壊完了！宝箱を表示します');
+        setTimeout(() => {
+            showTreasureChest();
+        }, 600);
+    }
+}
+
+// 宝箱を表示
+function showTreasureChest() {
+    console.log('showTreasureChest() 開始');
+    const treasureChest = document.getElementById('treasureChest');
+    
+    if (!treasureChest) {
+        console.error('treasureChest要素が見つかりません！');
+        return;
+    }
+    
+    treasureChest.style.display = 'block';
+    treasureChest.classList.add('show');
+    treasureChest.style.cursor = 'pointer';
+    
+    // 宝箱出現時のバイブレーション
+    vibrate([100, 50, 100]);
+    
+    // 宝箱をクリック可能にする（クリックとタッチ両方）
+    const openChest = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('宝箱がクリックされました');
+        openTreasureChest();
+    };
+    
+    treasureChest.addEventListener('click', openChest);
+    treasureChest.addEventListener('touchstart', openChest);
+    
+    console.log('宝箱表示完了、クリック待機中');
+}
+
+// 宝箱を開く
+function openTreasureChest() {
+    console.log('openTreasureChest() 開始');
+    const treasureChest = document.getElementById('treasureChest');
+    
+    if (!treasureChest) {
+        console.error('treasureChest要素が見つかりません！');
+        return;
+    }
+    
+    treasureChest.classList.add('opening');
+    treasureChest.style.pointerEvents = 'none';
+    
+    // 宝箱を開けた時のバイブレーション
+    vibrate(150);
+    
+    // 結果を表示（光の演出が完了するまで待つ）
+    setTimeout(() => {
+        console.log('結果を表示します');
+        showResult();
+    }, 1000);
 }

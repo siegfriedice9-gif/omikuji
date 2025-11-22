@@ -29,7 +29,6 @@
             <div class="temple-header">
                 <h1 class="temple-title">🏯 法楽寺おみくじ</h1>
                 <p class="temple-subtitle">一年の運勢を占います</p>
-                <p class="access-counter" id="accessCounter"></p>
             </div>
 
             <div class="instructions">
@@ -66,6 +65,33 @@
                     <button id="stopBtn" class="stop-button" onclick="stopCounter()" disabled>
                         ストップ！
                     </button>
+                </div>
+                
+                <!-- マインクラフト風演出 -->
+                <div id="minecraftContainer" class="minecraft-container">
+                    <p class="minecraft-message">ブロックを壊して宝箱を見つけよう！</p>
+                    <div class="block-grid" id="blockGrid"></div>
+                    <div class="treasure-chest" id="treasureChest">
+                        <div class="chest-body">
+                            <div class="chest-lid">🎁</div>
+                            <div class="chest-base">🟫</div>
+                            <div class="light-rays">
+                                <div class="ray ray1"></div>
+                                <div class="ray ray2"></div>
+                                <div class="ray ray3"></div>
+                                <div class="ray ray4"></div>
+                                <div class="ray ray5"></div>
+                            </div>
+                            <div class="sparkles">
+                                <div class="sparkle sparkle1">✨</div>
+                                <div class="sparkle sparkle2">✨</div>
+                                <div class="sparkle sparkle3">✨</div>
+                                <div class="sparkle sparkle4">✨</div>
+                                <div class="sparkle sparkle5">✨</div>
+                                <div class="sparkle sparkle6">✨</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -123,13 +123,6 @@ body {
     font-size: 18px;
 }
 
-.access-counter {
-    color: #999;
-    font-size: 12px;
-    margin-top: 5px;
-    font-style: italic;
-}
-
 .instructions {
     background: #f9f9f9;
     padding: 15px;
@@ -970,4 +963,357 @@ body {
 .stop-button.pressed {
     transform: scale(0.95);
     background: linear-gradient(45deg, #ff4757, #ff6b6b);
+}
+
+/* マインクラフト風演出 */
+.minecraft-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 450px;
+    padding: 20px;
+}
+
+.minecraft-container.active {
+    display: flex;
+}
+
+.minecraft-message {
+    color: #ffd700;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+    animation: messagePulse 1.5s ease-in-out infinite;
+}
+
+.block-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.block {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #8b7355 0%, #6b5a47 50%, #5a4a3a 100%);
+    border: 3px solid #4a3a2a;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3),
+                inset 0 2px 0 rgba(255,255,255,0.2),
+                inset 0 -2px 0 rgba(0,0,0,0.3);
+    transition: all 0.1s ease;
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.block::before {
+    content: '🧱';
+    font-size: 50px;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+}
+
+.block:hover:not(.breaking) {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4),
+                inset 0 2px 0 rgba(255,255,255,0.3);
+}
+
+.block:active:not(.breaking) {
+    transform: scale(0.95);
+}
+
+.block.breaking {
+    animation: blockBreak 0.5s ease-out forwards;
+}
+
+@keyframes blockBreak {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    25% {
+        transform: scale(1.1) rotate(5deg);
+    }
+    50% {
+        transform: scale(0.9) rotate(-5deg);
+        opacity: 0.7;
+    }
+    75% {
+        transform: scale(1.15) rotate(10deg);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(0) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+.treasure-chest {
+    display: none;
+    position: relative;
+    cursor: pointer;
+    filter: drop-shadow(0 10px 30px rgba(212, 175, 55, 0.6));
+    animation: chestAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.treasure-chest.show {
+    display: block;
+}
+
+.chest-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chest-lid {
+    font-size: 100px;
+    position: relative;
+    z-index: 2;
+    transform-origin: bottom center;
+    transition: transform 0.3s ease;
+}
+
+.chest-base {
+    font-size: 80px;
+    margin-top: -20px;
+    position: relative;
+    z-index: 1;
+}
+
+.treasure-chest:hover .chest-lid {
+    transform: translateY(-5px);
+}
+
+.light-rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ray {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 0;
+    background: linear-gradient(to top, 
+        rgba(255, 215, 0, 0) 0%,
+        rgba(255, 215, 0, 0.8) 50%,
+        rgba(255, 255, 255, 1) 100%);
+    transform-origin: bottom center;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.ray1 { transform: translate(-50%, 0) rotate(0deg); }
+.ray2 { transform: translate(-50%, 0) rotate(72deg); }
+.ray3 { transform: translate(-50%, 0) rotate(144deg); }
+.ray4 { transform: translate(-50%, 0) rotate(216deg); }
+.ray5 { transform: translate(-50%, 0) rotate(288deg); }
+
+.sparkles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sparkle {
+    position: absolute;
+    font-size: 30px;
+    opacity: 0;
+}
+
+.sparkle1 { top: 20%; left: 30%; }
+.sparkle2 { top: 30%; left: 70%; }
+.sparkle3 { top: 60%; left: 20%; }
+.sparkle4 { top: 70%; left: 80%; }
+.sparkle5 { top: 40%; left: 50%; }
+.sparkle6 { top: 80%; left: 50%; }
+
+@keyframes chestAppear {
+    0% {
+        transform: scale(0) translateY(-50px) rotate(-180deg);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.2) translateY(0) rotate(10deg);
+        opacity: 1;
+    }
+    80% {
+        transform: scale(0.9) rotate(-5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.treasure-chest:hover {
+    animation: chestBounce 0.5s ease-in-out infinite;
+}
+
+@keyframes chestBounce {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-10px) scale(1.05);
+    }
+}
+
+.treasure-chest.opening .chest-lid {
+    animation: lidOpen 0.6s ease-out forwards;
+}
+
+.treasure-chest.opening .light-rays {
+    animation: lightBurst 0.6s ease-out forwards;
+}
+
+.treasure-chest.opening .ray {
+    animation: rayShoot 0.6s ease-out forwards;
+}
+
+.treasure-chest.opening .sparkles {
+    animation: sparkleAppear 0.6s ease-out forwards;
+}
+
+.treasure-chest.opening .sparkle {
+    animation: sparkleFloat 0.8s ease-out forwards;
+}
+
+@keyframes lidOpen {
+    0% {
+        transform: rotateX(0deg) translateY(0);
+    }
+    50% {
+        transform: rotateX(-30deg) translateY(-20px);
+    }
+    100% {
+        transform: rotateX(-60deg) translateY(-40px) scale(1.2);
+        opacity: 0.5;
+    }
+}
+
+@keyframes lightBurst {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    30% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+}
+
+@keyframes rayShoot {
+    0% {
+        height: 0;
+        opacity: 0;
+    }
+    30% {
+        height: 150px;
+        opacity: 1;
+    }
+    100% {
+        height: 200px;
+        opacity: 0;
+    }
+}
+
+@keyframes sparkleAppear {
+    0% {
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes sparkleFloat {
+    0% {
+        transform: translateY(0) scale(0.5);
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+    60% {
+        opacity: 0.8;
+        transform: translateY(-40px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0.8);
+    }
+}
+
+.treasure-chest.opening .sparkle1 { animation-delay: 0.1s; }
+.treasure-chest.opening .sparkle2 { animation-delay: 0.15s; }
+.treasure-chest.opening .sparkle3 { animation-delay: 0.2s; }
+.treasure-chest.opening .sparkle4 { animation-delay: 0.1s; }
+.treasure-chest.opening .sparkle5 { animation-delay: 0.25s; }
+.treasure-chest.opening .sparkle6 { animation-delay: 0.2s; }
+
+/* レスポンシブ対応 - マインクラフト */
+@media (max-width: 480px) {
+    .block-grid {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+        gap: 8px;
+    }
+    
+    .block {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .block::before {
+        font-size: 40px;
+    }
+    
+    .chest-lid {
+        font-size: 80px;
+    }
+    
+    .chest-base {
+        font-size: 64px;
+        margin-top: -16px;
+    }
+    
+    .light-rays,
+    .sparkles {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .sparkle {
+        font-size: 24px;
+    }
 }
