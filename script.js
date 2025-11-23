@@ -70,9 +70,9 @@ const omikujiResults = {
     ]
 };
 
-let rouletteData = { canvas: null, ctx: null, rotation: 0, speed: 0.3, selectedResult: null, stopping: false };
+let rouletteData = { canvas: null, ctx: null, rotation: 0, speed: 0.3, selectedResult: null, stopping: false, vibrateInterval: null };
 let counterData = { interval: null, index: 0, running: false, selectedResult: null, speed: 50 };
-let powerData = { power: 0, tapCount: 0, charging: false, complete: false, selectedResult: null };
+let powerData = { power: 0, tapCount: 0, charging: false, complete: false, selectedResult: null, startTime: null, countdownTimer: null };
 
 function checkPassword() {
     const input = document.getElementById('passwordInput').value;
@@ -110,6 +110,21 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
+    }
+    
+    if (sessionStorage.getItem('omikuji_auth') === 'true') {
+        const savedMode = sessionStorage.getItem('omikuji_mode');
+        if (savedMode === 'simple') {
+            currentMode = 'simple';
+        } else if (savedMode === 'normal') {
+            currentMode = 'normal';
+        } else if (savedMode === 'admin') {
+            currentMode = 'admin';
+            isAdminMode = true;
+        }
+        
+        showOmikujiScreen();
+        if (isAdminMode) enableAdminMode();
     }
 });
 
@@ -175,6 +190,15 @@ function initRoulette() {
     rouletteData.rotation = 0;
     rouletteData.stopping = false;
     
+    if (rouletteData.vibrateInterval) {
+        clearInterval(rouletteData.vibrateInterval);
+    }
+    rouletteData.vibrateInterval = setInterval(() => {
+        if (!rouletteData.stopping) {
+            vibrate(50);
+        }
+    }, 200);
+    
     drawRoulette();
     
     setTimeout(() => {
@@ -214,7 +238,6 @@ function drawRoulette() {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // 番号を描画
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(startAngle + anglePerSection / 2);
@@ -238,6 +261,11 @@ function drawRoulette() {
 
 function stopRoulette() {
     rouletteData.stopping = true;
+    
+    if (rouletteData.vibrateInterval) {
+        clearInterval(rouletteData.vibrateInterval);
+        rouletteData.vibrateInterval = null;
+    }
     
     const selectedIndex = omikujiResults.results.findIndex(r => r.number === rouletteData.selectedResult.number);
     const anglePerSection = (Math.PI * 2) / omikujiResults.results.length;
@@ -267,11 +295,32 @@ function stopRoulette() {
             requestAnimationFrame(animateStop);
         } else {
             vibrate(200);
-            setTimeout(showResult, 800);
+            showRouletteNumber();
         }
     };
     
     animateStop();
+}
+
+function showRouletteNumber() {
+    const ctx = rouletteData.ctx;
+    const text = document.getElementById('rouletteText');
+    
+    text.textContent = `第${rouletteData.selectedResult.number}番`;
+    text.style.fontSize = '32px';
+    text.style.fontWeight = 'bold';
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, 400, 400);
+    
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 80px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(rouletteData.selectedResult.number, 200, 200);
+    
+    vibrate(200);
+    setTimeout(showResult, 2000);
 }
 
 function initCounter() {
@@ -289,7 +338,7 @@ function initCounter() {
     
     setTimeout(() => {
         if (counterData.running) stopBtn.disabled = false;
-    }, 1000);
+    }, 3000);
 }
 
 function startCounter() {
@@ -300,6 +349,8 @@ function startCounter() {
         
         counterData.index = Math.floor(Math.random() * omikujiResults.results.length);
         display.textContent = omikujiResults.results[counterData.index].fortune;
+        
+        vibrate(30);
         
         if (counterData.running) {
             counterData.interval = setTimeout(update, counterData.speed);
@@ -330,6 +381,8 @@ function stopCounter() {
         counterData.index = Math.floor(Math.random() * omikujiResults.results.length);
         display.textContent = omikujiResults.results[counterData.index].fortune;
         
+        vibrate(50);
+        
         if (slowSteps < maxSteps) {
             setTimeout(slowDown, counterData.speed);
         } else {
@@ -350,6 +403,12 @@ function initPowerCharge() {
     powerData.tapCount = 0;
     powerData.charging = false;
     powerData.complete = false;
+    powerData.startTime = null;
+    
+    if (powerData.countdownTimer) {
+        clearInterval(powerData.countdownTimer);
+        powerData.countdownTimer = null;
+    }
     
     const countdownArea = document.getElementById('countdownArea');
     const gameArea = document.getElementById('gameArea');
@@ -360,6 +419,7 @@ function initPowerCharge() {
     
     let count = 3;
     countdownNumber.textContent = count;
+    countdownNumber.classList.remove('start');
     vibrate(100);
     
     const countdownInterval = setInterval(() => {
@@ -384,6 +444,7 @@ function initPowerCharge() {
 
 function startPowerCharge() {
     powerData.charging = true;
+    powerData.startTime = Date.now();
     
     const tapArea = document.getElementById('tapArea');
     const fill = document.getElementById('powerGaugeFill');
@@ -399,6 +460,9 @@ function startPowerCharge() {
     gauge.classList.remove('complete');
     cheerMsg.classList.remove('complete');
     
+    const newTapArea = tapArea.cloneNode(true);
+    tapArea.parentNode.replaceChild(newTapArea, tapArea);
+    
     const handleTap = (e) => {
         e.preventDefault();
         if (!powerData.charging || powerData.complete) return;
@@ -407,22 +471,23 @@ function startPowerCharge() {
         const increase = 8 + Math.floor(Math.random() * 3);
         powerData.power = Math.min(powerData.power + increase, 100);
         
-        fill.style.width = powerData.power + '%';
-        percentage.textContent = Math.floor(powerData.power) + '%';
-        tapDisplay.textContent = 'タップ数: ' + powerData.tapCount;
+        document.getElementById('powerGaugeFill').style.width = powerData.power + '%';
+        document.getElementById('powerPercentage').textContent = Math.floor(powerData.power) + '%';
+        document.getElementById('tapCountDisplay').textContent = 'タップ数: ' + powerData.tapCount;
         
+        const msg = document.getElementById('cheerMessage');
         if (powerData.power < 30) {
-            cheerMsg.textContent = 'もっと！もっと！';
+            msg.textContent = 'もっと！もっと！';
         } else if (powerData.power < 60) {
-            cheerMsg.textContent = 'いい調子！';
+            msg.textContent = 'いい調子！';
         } else if (powerData.power < 90) {
-            cheerMsg.textContent = 'すごい！あと少し！';
+            msg.textContent = 'すごい！あと少し！';
         } else {
-            cheerMsg.textContent = 'ラストスパート！';
+            msg.textContent = 'ラストスパート！';
         }
         
-        tapArea.classList.add('tapped');
-        setTimeout(() => tapArea.classList.remove('tapped'), 100);
+        newTapArea.classList.add('tapped');
+        setTimeout(() => newTapArea.classList.remove('tapped'), 100);
         
         vibrate(30);
         
@@ -431,21 +496,50 @@ function startPowerCharge() {
         }
     };
     
-    tapArea.addEventListener('click', handleTap);
-    tapArea.addEventListener('touchstart', handleTap);
+    newTapArea.addEventListener('click', handleTap);
+    newTapArea.addEventListener('touchstart', handleTap);
+    
+    powerData.countdownTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - powerData.startTime) / 1000);
+        const remaining = 20 - elapsed;
+        
+        if (remaining <= 5 && remaining > 0 && powerData.tapCount === 0) {
+            document.getElementById('cheerMessage').textContent = `あと${remaining}秒で終了します`;
+        }
+        
+        if (remaining <= 0) {
+            clearInterval(powerData.countdownTimer);
+            powerData.countdownTimer = null;
+            if (!powerData.complete) {
+                completePowerCharge();
+            }
+        }
+    }, 1000);
 }
 
 function completePowerCharge() {
+    if (powerData.complete) return;
+    
     powerData.complete = true;
     powerData.charging = false;
+    
+    if (powerData.countdownTimer) {
+        clearInterval(powerData.countdownTimer);
+        powerData.countdownTimer = null;
+    }
     
     const gauge = document.getElementById('powerGauge');
     const cheerMsg = document.getElementById('cheerMessage');
     const tapArea = document.getElementById('tapArea');
     
-    gauge.classList.add('complete');
-    cheerMsg.textContent = '🎉 シャキーン！完成！ 🎉';
-    cheerMsg.classList.add('complete');
+    if (powerData.tapCount === 0) {
+        cheerMsg.textContent = '時間切れです...';
+    } else {
+        gauge.classList.add('complete');
+        cheerMsg.textContent = '🎉 シャキーン！完成！ 🎉';
+        cheerMsg.classList.add('complete');
+    }
+    
     tapArea.style.pointerEvents = 'none';
     
     vibrate([100, 50, 100, 50, 100]);
@@ -488,7 +582,7 @@ function showResult() {
         imgs[0].style.display = "none";
         imgs[1].style.display = "block";
     } else {
-        title.innerHTML = "①薬師堂と②光龍閣で<br>参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "①薬師堂と②光龍閣の両方で<br>参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
         imgs[1].style.display = "block";
     }
@@ -499,7 +593,7 @@ function showResult() {
             wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
             vibrate(50);
         }, 500);
-    }, 1000);
+    }, 2000);
 }
 
 function enableAdminMode() {
@@ -548,7 +642,7 @@ function showAdminResult(index) {
     setTimeout(() => {
         wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
         vibrate(50);
-    }, 500);
+    }, 2500);
     
     document.getElementById('adminCounter').textContent = `${index + 1} / ${omikujiResults.results.length}`;
     document.getElementById('prevBtn').disabled = (index === 0);
@@ -567,21 +661,4 @@ function showNext() {
         currentIndex++;
         showAdminResult(currentIndex);
     }
-}
-
-if (sessionStorage.getItem('omikuji_auth') === 'true') {
-    document.addEventListener('DOMContentLoaded', function() {
-        const savedMode = sessionStorage.getItem('omikuji_mode');
-        if (savedMode === 'simple') {
-            currentMode = 'simple';
-        } else if (savedMode === 'normal') {
-            currentMode = 'normal';
-        } else if (savedMode === 'admin') {
-            currentMode = 'admin';
-            isAdminMode = true;
-        }
-        
-        showOmikujiScreen();
-        if (isAdminMode) enableAdminMode();
-    });
 }
