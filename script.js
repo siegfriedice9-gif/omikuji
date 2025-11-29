@@ -2,6 +2,9 @@
 const simplePassword = "1234";
 const normalPassword = "5678";
 const adminPassword = "2256";
+const wg = document.getElementById('worshipGuide');
+const title = wg.querySelector('.worship-guide-title');
+const imgs = wg.querySelectorAll('.temple-item');
 let currentMode = 'simple';
 let isAdminMode = false;
 let currentIndex = 0;
@@ -70,8 +73,6 @@ const omikujiResults = {
     ]
 };
 
-let rouletteData = { canvas: null, ctx: null, rotation: 0, speed: 0.3, selectedResult: null, stopping: false, vibrateInterval: null };
-let counterData = { interval: null, index: 0, running: false, selectedResult: null, speed: 50 };
 let powerData = { power: 0, tapCount: 0, charging: false, complete: false, selectedResult: null, startTime: null, countdownTimer: null };
 
 function checkPassword() {
@@ -136,8 +137,6 @@ function showOmikujiScreen() {
 function drawOmikuji() {
     const button = document.getElementById('drawBtn');
     const resultCard = document.getElementById('resultCard');
-    const rouletteContainer = document.getElementById('rouletteContainer');
-    const counterContainer = document.getElementById('counterContainer');
     const powerContainer = document.getElementById('powerChargeContainer');
     
     button.style.display = 'none';
@@ -148,254 +147,14 @@ function drawOmikuji() {
     const selectedResult = omikujiResults.results[idx];
     
     if (currentMode === 'simple') {
-        rouletteData.selectedResult = selectedResult;
-        counterData.selectedResult = selectedResult;
         powerData.selectedResult = selectedResult;
         setTimeout(showResult, 300);
     } else {
-        const rand = Math.random();
-        let type;
-        
-        if (rand < 0.33) {
-            type = 'roulette';
-        } else if (rand < 0.66) {
-            type = 'counter';
-        } else {
-            type = 'power';
-        }
-        
-        rouletteContainer.classList.remove('active');
-        counterContainer.classList.remove('active');
         powerContainer.classList.remove('active');
-        
-        if (type === 'roulette') {
-            rouletteContainer.classList.add('active');
-            rouletteData.selectedResult = selectedResult;
-            initRoulette();
-        } else if (type === 'counter') {
-            counterContainer.classList.add('active');
-            counterData.selectedResult = selectedResult;
-            initCounter();
-        } else {
-            powerContainer.classList.add('active');
-            powerData.selectedResult = selectedResult;
-            initPowerCharge();
-        }
+        powerContainer.classList.add('active');
+        powerData.selectedResult = selectedResult;
+        initPowerCharge();
     }
-}
-
-function initRoulette() {
-    rouletteData.canvas = document.getElementById('rouletteCanvas');
-    rouletteData.ctx = rouletteData.canvas.getContext('2d');
-    rouletteData.rotation = 0;
-    rouletteData.stopping = false;
-    
-    if (rouletteData.vibrateInterval) {
-        clearInterval(rouletteData.vibrateInterval);
-    }
-    rouletteData.vibrateInterval = setInterval(() => {
-        if (!rouletteData.stopping) {
-            vibrate(50);
-        }
-    }, 200);
-    
-    drawRoulette();
-    
-    setTimeout(() => {
-        stopRoulette();
-    }, 3000);
-}
-
-function drawRoulette() {
-    const ctx = rouletteData.ctx;
-    const centerX = 200;
-    const centerY = 200;
-    const radius = 180;
-    
-    if (!rouletteData.stopping) {
-        rouletteData.rotation += rouletteData.speed;
-    }
-    
-    ctx.clearRect(0, 0, 400, 400);
-    
-    const count = omikujiResults.results.length;
-    const anglePerSection = (Math.PI * 2) / count;
-    
-    for (let i = 0; i < count; i++) {
-        const startAngle = rouletteData.rotation + (i * anglePerSection);
-        const endAngle = startAngle + anglePerSection;
-        
-        const colors = ['#d4af37', '#ffd700', '#8b4513', '#a0541a'];
-        ctx.fillStyle = colors[i % colors.length];
-        
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.closePath();
-        ctx.fill();
-        
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(startAngle + anglePerSection / 2);
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText(omikujiResults.results[i].number, radius * 0.7, 0);
-        ctx.restore();
-    }
-    
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 40, 0, Math.PI * 2);
-    ctx.fillStyle = '#8b4513';
-    ctx.fill();
-    
-    if (!rouletteData.stopping) {
-        requestAnimationFrame(drawRoulette);
-    }
-}
-
-function stopRoulette() {
-    rouletteData.stopping = true;
-    
-    if (rouletteData.vibrateInterval) {
-        clearInterval(rouletteData.vibrateInterval);
-        rouletteData.vibrateInterval = null;
-    }
-    
-    const selectedIndex = omikujiResults.results.findIndex(r => r.number === rouletteData.selectedResult.number);
-    const anglePerSection = (Math.PI * 2) / omikujiResults.results.length;
-    const targetAngle = -(selectedIndex * anglePerSection + anglePerSection / 2) - (Math.PI / 2);
-    
-    let currentAngle = rouletteData.rotation % (Math.PI * 2);
-    if (currentAngle < 0) currentAngle += Math.PI * 2;
-    
-    let normalizedTarget = targetAngle % (Math.PI * 2);
-    if (normalizedTarget < 0) normalizedTarget += Math.PI * 2;
-    
-    const finalTarget = rouletteData.rotation - currentAngle + normalizedTarget + (Math.PI * 2 * 3);
-    
-    const startRotation = rouletteData.rotation;
-    const startTime = Date.now();
-    const duration = 2500;
-    
-    const animateStop = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 3);
-        
-        rouletteData.rotation = startRotation + (finalTarget - startRotation) * easedProgress;
-        drawRoulette();
-        
-        if (progress < 1) {
-            requestAnimationFrame(animateStop);
-        } else {
-            vibrate(200);
-            showRouletteNumber();
-        }
-    };
-    
-    animateStop();
-}
-
-function showRouletteNumber() {
-    const ctx = rouletteData.ctx;
-    const text = document.getElementById('rouletteText');
-    
-    text.textContent = `第${rouletteData.selectedResult.number}番`;
-    text.style.fontSize = '32px';
-    text.style.fontWeight = 'bold';
-    
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, 400, 400);
-    
-    ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 80px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(rouletteData.selectedResult.number, 200, 200);
-    
-    vibrate(200);
-    setTimeout(showResult, 2000);
-}
-
-function initCounter() {
-    counterData.index = 0;
-    counterData.running = true;
-    counterData.speed = 50;
-    
-    const stopBtn = document.getElementById('stopBtn');
-    const display = document.getElementById('fortuneDisplay');
-    
-    stopBtn.disabled = true;
-    display.classList.remove('stopped');
-    
-    startCounter();
-    
-    setTimeout(() => {
-        if (counterData.running) stopBtn.disabled = false;
-    }, 3000);
-}
-
-function startCounter() {
-    const display = document.getElementById('fortuneDisplay');
-    
-    const update = () => {
-        if (!counterData.running) return;
-        
-        counterData.index = Math.floor(Math.random() * omikujiResults.results.length);
-        display.textContent = omikujiResults.results[counterData.index].fortune;
-        
-        vibrate(30);
-        
-        if (counterData.running) {
-            counterData.interval = setTimeout(update, counterData.speed);
-        }
-    };
-    
-    update();
-}
-
-function stopCounter() {
-    if (!counterData.running) return;
-    
-    counterData.running = false;
-    clearTimeout(counterData.interval);
-    
-    const stopBtn = document.getElementById('stopBtn');
-    const display = document.getElementById('fortuneDisplay');
-    
-    stopBtn.disabled = true;
-    
-    let slowSteps = 0;
-    const maxSteps = 10;
-    
-    const slowDown = () => {
-        slowSteps++;
-        counterData.speed = 50 + (slowSteps * 30);
-        
-        counterData.index = Math.floor(Math.random() * omikujiResults.results.length);
-        display.textContent = omikujiResults.results[counterData.index].fortune;
-        
-        vibrate(50);
-        
-        if (slowSteps < maxSteps) {
-            setTimeout(slowDown, counterData.speed);
-        } else {
-            setTimeout(() => {
-                display.textContent = counterData.selectedResult.fortune;
-                display.classList.add('stopped');
-                vibrate(200);
-                setTimeout(showResult, 1500);
-            }, counterData.speed);
-        }
-    };
-    
-    slowDown();
 }
 
 function initPowerCharge() {
@@ -501,7 +260,8 @@ function startPowerCharge() {
     
     powerData.countdownTimer = setInterval(() => {
         const elapsed = Math.floor((Date.now() - powerData.startTime) / 1000);
-        const remaining = 20 - elapsed;
+        // タップ開始後終了時間
+        const remaining = 5 - elapsed;　
         
         if (remaining <= 5 && remaining > 0 && powerData.tapCount === 0) {
             document.getElementById('cheerMessage').textContent = `あと${remaining}秒で終了します`;
@@ -536,22 +296,39 @@ function completePowerCharge() {
         cheerMsg.textContent = '時間切れです...';
     } else {
         gauge.classList.add('complete');
-        cheerMsg.textContent = '🎉 シャキーン！完成！ 🎉';
+        cheerMsg.textContent = 'ご縁仏降臨☆';
         cheerMsg.classList.add('complete');
     }
     
     tapArea.style.pointerEvents = 'none';
     
-    vibrate([100, 50, 100, 50, 100]);
-    
-    setTimeout(showResult, 1500);
+    // タップ無効化を削除し、次回に備えて初期化
+
+tapArea.style.pointerEvents = "auto";
+
+setTimeout(() => {
+
+showResult();
+
+// 次回用に状態をリセット
+
+powerData.power = 0;
+
+powerData.tapCount = 0;
+
+powerData.charging = false;
+
+powerData.complete = false;
+
+powerData.startTime = null;
+
+}, 1500);
+
 }
 
 function showResult() {
-    const result = rouletteData.selectedResult || counterData.selectedResult || powerData.selectedResult;
+    const result = powerData.selectedResult;
     
-    document.getElementById('rouletteContainer').classList.remove('active');
-    document.getElementById('counterContainer').classList.remove('active');
     document.getElementById('powerChargeContainer').classList.remove('active');
     
     document.getElementById('drawBtn').style.display = 'inline-block';
@@ -573,20 +350,49 @@ function showResult() {
     const title = wg.querySelector('.worship-guide-title');
     const imgs = wg.querySelectorAll('.temple-item');
     
-    if (result.godNumber <= 5) {
-        title.innerHTML = "①薬師堂中で参拝されまして<br>より深いご利益をお授かりください。";
+
+    //     if (result.godNumber <= 5) {
+    //     title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください。";
+    //     imgs[0].style.display = "block";
+    //     imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
+    //     imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+    //     imgs[1].style.display = "none";
+    // } else if (result.godNumber <= 9) {
+    //     title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
+    //     imgs[0].style.display = "none";
+    //     imgs[1].style.display = "block";
+    //     imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+    //     imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+    // } else {
+    //     title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください。";
+    //     imgs[0].style.display = "block";
+    //     imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
+    //     imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+    //     imgs[1].style.display = "none";
+    // }
+       if (result.godNumber <= 5) {
+        title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
-        imgs[1].style.display = "none";
-    } else if (result.godNumber <= 8) {
-        title.innerHTML = "②光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
-        imgs[0].style.display = "none";
+        imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
+        imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
         imgs[1].style.display = "block";
+        imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+        imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+    } else if (result.godNumber <= 9) {
+        title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
+        imgs[0].style.display = "block";
+        imgs[0].querySelector('img').src = `image/2kouryuukaku.jpg`;
+        imgs[0].querySelector('.temple-label').textContent = `光龍閣`;
+        imgs[1].style.display = "block";
+        imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+        imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
     } else {
-        title.innerHTML = "①薬師堂と②光龍閣の両方で<br>参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
-        imgs[1].style.display = "block";
+        imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
+        imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+        imgs[1].style.display = "none";
     }
-    
     setTimeout(() => {
         wg.classList.add('show');
         setTimeout(() => {
@@ -625,15 +431,15 @@ function showAdminResult(index) {
     const imgs = wg.querySelectorAll('.temple-item');
     
     if (result.godNumber <= 5) {
-        title.innerHTML = "①薬師堂中で参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
         imgs[1].style.display = "none";
-    } else if (result.godNumber <= 8) {
-        title.innerHTML = "②光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
+    } else if (result.godNumber <= 9) {
+        title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "none";
         imgs[1].style.display = "block";
     } else {
-        title.innerHTML = "①薬師堂と②光龍閣の両方で<br>参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "ご縁仏を参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
         imgs[1].style.display = "block";
     }

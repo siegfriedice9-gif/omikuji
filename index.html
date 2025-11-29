@@ -19,7 +19,7 @@
 
         <div id="omikujiScreen" class="omikuji-screen">
             <div class="temple-header">
-                <h1 class="temple-title">🏯 法楽寺おみくじ</h1>
+                <h1 class="temple-title">🏯 法楽寺無料おみくじ</h1>
                 <p class="temple-subtitle">一年の運勢を占います</p>
             </div>
 
@@ -30,31 +30,15 @@
             <div class="omikuji-box">
                 <button id="drawBtn" class="omikuji-button" onclick="drawOmikuji()">🎋 おみくじを引く</button>
                 
-                <!-- ルーレット演出 -->
-                <div id="rouletteContainer" class="roulette-container">
-                    <canvas id="rouletteCanvas" width="400" height="400"></canvas>
-                    <div class="roulette-pointer">▼</div>
-                    <p id="rouletteText" class="roulette-text">ルーレットが回っています...</p>
-                </div>
-                
-                <!-- カウンター演出 -->
-                <div id="counterContainer" class="counter-container">
-                    <div class="counter-display">
-                        <div id="fortuneDisplay" class="fortune-display">大吉</div>
-                    </div>
-                    <p class="counter-message">心を込めて...</p>
-                    <button id="stopBtn" class="stop-button" onclick="stopCounter()">ストップ！</button>
-                </div>
-                
                 <!-- 連打チャレンジ演出 -->
                 <div id="powerChargeContainer" class="power-charge-container">
                     <div id="countdownArea" class="countdown-area">
-                        <p class="countdown-message">おみくじパワーを<br>画面を連続タップで充填してください！</p>
+                        <p class="countdown-message">お祈りパワーを<br>画面を連続タップで充填してください！</p>
                         <div id="countdownNumber" class="countdown-number">3</div>
                     </div>
                     
                     <div id="gameArea" class="game-area" style="display:none;">
-                        <p class="power-charge-title">おみくじパワーを充填！</p>
+                        <p class="power-charge-title">お祈りパワーを充填！</p>
                         
                         <div class="power-gauge-wrapper">
                             <div class="power-gauge" id="powerGauge">
@@ -90,15 +74,15 @@
             </div>
 
             <div id="worshipGuide" class="worship-guide">
-                <h2 class="worship-guide-title">①薬師堂で参拝されまして<br>より深いご利益をお授かりください。</h2>
+                <h2 class="worship-guide-title">薬師堂で参拝されまして<br>より深いご利益をお授かりください。</h2>
                 <div class="temple-images">
                     <div class="temple-item">
                         <img src="image/1yakushidou.jpg" alt="薬師堂">
-                        <p class="temple-label">①薬師堂</p>
+                        <p class="temple-label">薬師堂</p>
                     </div>
                     <div class="temple-item">
                         <img src="image/2kouryuukaku.jpg" alt="光龍閣">
-                        <p class="temple-label">②光龍閣</p>
+                        <p class="temple-label">光龍閣</p>
                     </div>
                 </div>
                 
