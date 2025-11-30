@@ -463,12 +463,12 @@ body {
 
 .god-info {
     font-size: 20px;
-    color: #ff6b6b;
+    color: #8b4513;
     font-weight: bold;
-    background: linear-gradient(135deg, #fff3e6 0%, #ffe6cc 100%);
+    /* background: linear-gradient(135deg, #fff3e6 0%, #ffe6cc 100%); */
     padding: 10px 20px;
-    border-radius: 10px;
-    border: 2px solid #ff6b6b;
+    /* border-radius: 10px;
+    border: 2px solid #ff6b6b; */
 }
 
 /* 参拝案内 */
