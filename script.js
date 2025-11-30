@@ -333,7 +333,7 @@ function showResult() {
     
     document.getElementById('drawBtn').style.display = 'inline-block';
     
-    document.getElementById('resultNumber').textContent = `第${result.number}番`;
+    document.getElementById('resultNumber').textContent = `${result.number}番`;
     document.getElementById('resultFortune').textContent = result.fortune;
     document.getElementById('resultMessage').textContent = result.message;
     
@@ -393,7 +393,7 @@ function enableAdminMode() {
 function showAdminResult(index) {
     const result = omikujiResults.results[index];
     
-    document.getElementById('resultNumber').textContent = `第${result.number}番`;
+    document.getElementById('resultNumber').textContent = `${result.number}番`;
     document.getElementById('resultFortune').textContent = result.fortune;
     document.getElementById('resultMessage').textContent = result.message;
     
