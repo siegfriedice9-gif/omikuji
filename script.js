@@ -350,26 +350,6 @@ function showResult() {
     const title = wg.querySelector('.worship-guide-title');
     const imgs = wg.querySelectorAll('.temple-item');
     
-
-    //     if (result.godNumber <= 5) {
-    //     title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-    //     imgs[0].style.display = "block";
-    //     imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
-    //     imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-    //     imgs[1].style.display = "none";
-    // } else if (result.godNumber <= 9) {
-    //     title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-    //     imgs[0].style.display = "none";
-    //     imgs[1].style.display = "block";
-    //     imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
-    //     imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-    // } else {
-    //     title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-    //     imgs[0].style.display = "block";
-    //     imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
-    //     imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-    //     imgs[1].style.display = "none";
-    // }
        if (result.godNumber <= 5) {
         title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください。";
         imgs[0].style.display = "block";
