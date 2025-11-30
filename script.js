@@ -351,7 +351,7 @@ function showResult() {
     const imgs = wg.querySelectorAll('.temple-item');
     
        if (result.godNumber <= 5) {
-        title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
         imgs[0].style.display = "block";
         imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
         imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
@@ -359,7 +359,7 @@ function showResult() {
         imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
         imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
     } else if (result.godNumber <= 9) {
-        title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください。";
+        title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
         imgs[0].style.display = "block";
         imgs[0].querySelector('img').src = `image/2kouryuukaku.jpg`;
         imgs[0].querySelector('.temple-label').textContent = `光龍閣`;
