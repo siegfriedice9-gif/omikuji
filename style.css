@@ -385,7 +385,7 @@ body {
     border: 2px solid #ffd700;
 }
 
-/* 結果表示 */
+/* 結果表示 - 変更箇所 */
 .result-section {
     min-height: 200px;
     display: flex;
@@ -396,11 +396,24 @@ body {
 }
 
 .result-card {
-    background: linear-gradient(135deg, #fff 0%, #f8f6f3 100%);
-    border: 3px solid #d4af37;
-    border-radius: 15px;
-    padding: 30px;
+    /* 背景画像をyoushi.jpgに変更 */
+    background-image: url('image/youshi.jpg');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    
+    /* 既存の枠線等を削除 */
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    
+    /* お寺のイラストを避けるために上部のパディングを大きく設定 */
+    padding: 350px 30px 40px 30px;
+    
+    /* 縦長の画像に合わせて最小高さを設定 */
+    min-height: 750px;
     width: 100%;
+    
     display: none;
     animation: fadeInScale 0.6s ease-out;
 }
@@ -441,12 +454,12 @@ body {
     margin-bottom: 20px;
 }
 
-.result-god {
+/* .result-god {
     background: linear-gradient(135deg, #f0e6d2 0%, #e8dcc8 100%);
     border-radius: 10px;
     padding: 15px;
     margin-top: 20px;
-}
+} */
 
 .god-name {
     font-size: 20px;

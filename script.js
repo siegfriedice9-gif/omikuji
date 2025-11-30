@@ -106,11 +106,40 @@ function checkPassword() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+        @keyframes blinkTriple {
+            0% { opacity: 1; }
+            16.6% { opacity: 0; }
+            33.3% { opacity: 1; }
+            50% { opacity: 0; }
+            66.6% { opacity: 1; }
+            83.3% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .blink-triple {
+            animation: blinkTriple 2.1s ease-in-out forwards;
+        }
+        .inline-result {
+            display: inline-block !important;
+        }
+        #resultNumber {
+            margin-right: 15px; 
+        }
+    `;
+    document.head.appendChild(styleSheet);
+
     const passwordInput = document.getElementById('passwordInput');
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
+    }
+
+    // 確認ボタンのクリックイベント
+    const checkBtn = document.getElementById('checkBtn');
+    if (checkBtn) {
+        checkBtn.addEventListener('click', checkPassword);
     }
     
     if (sessionStorage.getItem('omikuji_auth') === 'true') {
@@ -132,6 +161,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function showOmikujiScreen() {
     document.getElementById('passwordScreen').classList.add('hidden');
     document.getElementById('omikujiScreen').classList.add('active');
+    
+    // 【修正箇所】画面表示時に、結果や管理ナビ、参拝ガイドを確実に非表示にする
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('worshipGuide').classList.remove('show');
+    document.getElementById('adminNavigation').classList.remove('show');
+    document.getElementById('drawBtn').style.display = 'inline-block';
 }
 
 function drawOmikuji() {
@@ -260,8 +295,7 @@ function startPowerCharge() {
     
     powerData.countdownTimer = setInterval(() => {
         const elapsed = Math.floor((Date.now() - powerData.startTime) / 1000);
-        // タップ開始後終了時間
-        const remaining = 5 - elapsed;　
+        const remaining = 5 - elapsed;
         
         if (remaining <= 5 && remaining > 0 && powerData.tapCount === 0) {
             document.getElementById('cheerMessage').textContent = `あと${remaining}秒で終了します`;
@@ -302,84 +336,119 @@ function completePowerCharge() {
     
     tapArea.style.pointerEvents = 'none';
     
-    // タップ無効化を削除し、次回に備えて初期化
-
-tapArea.style.pointerEvents = "auto";
-
-setTimeout(() => {
-
-showResult();
-
-// 次回用に状態をリセット
-
-powerData.power = 0;
-
-powerData.tapCount = 0;
-
-powerData.charging = false;
-
-powerData.complete = false;
-
-powerData.startTime = null;
-
-}, 1500);
-
+    tapArea.style.pointerEvents = "auto";
+    setTimeout(() => {
+        showResult();
+        powerData.power = 0;
+        powerData.tapCount = 0;
+        powerData.charging = false;
+        powerData.complete = false;
+        powerData.startTime = null;
+    }, 1500);
 }
 
 function showResult() {
     const result = powerData.selectedResult;
     
     document.getElementById('powerChargeContainer').classList.remove('active');
-    
     document.getElementById('drawBtn').style.display = 'inline-block';
     
-    document.getElementById('resultNumber').textContent = `${result.number}番`;
-    document.getElementById('resultFortune').textContent = result.fortune;
-    document.getElementById('resultMessage').textContent = result.message;
+    const resultCard = document.getElementById('resultCard');
+    const resultNumEl = document.getElementById('resultNumber');
+    const resultFortuneEl = document.getElementById('resultFortune');
+    const resultMessageEl = document.getElementById('resultMessage');
+    const resultGodEl = document.getElementById('resultGod');
+    
+    resultNumEl.textContent = `${result.number}番`;
+    resultFortuneEl.textContent = result.fortune;
+    resultMessageEl.textContent = result.message;
+    
+    resultNumEl.classList.add('inline-result');
+    resultFortuneEl.classList.add('inline-result');
     
     const godHtml = `
-        <div class="god-name">${result.god}</div>
-        <div class="god-reading">(${result.godReading})</div>
-        <div class="god-info">ご縁仏の番号: ${result.godNumber}</div>
+        <div class=\"god-name\">${result.god}</div>
+        <div class=\"god-reading\">(${result.godReading})</div>
+        <div class=\"god-info\">ご縁仏の番号: ${result.godNumber}</div>
     `;
-    document.getElementById('resultGod').innerHTML = godHtml;
+    resultGodEl.innerHTML = godHtml;
     
-    document.getElementById('resultCard').classList.add('show');
+    resultNumEl.style.opacity = '0';
+    resultFortuneEl.style.opacity = '0';
+    resultMessageEl.style.opacity = '0';
+    const godNameEl = resultGodEl.querySelector('.god-name');
+    const godReadingEl = resultGodEl.querySelector('.god-reading');
+    const godInfoEl = resultGodEl.querySelector('.god-info');
+    godNameEl.style.opacity = '0';
+    godReadingEl.style.opacity = '0';
+    godInfoEl.style.opacity = '0';
+
+    resultCard.classList.add('show');
     
-    const wg = document.getElementById('worshipGuide');
-    const title = wg.querySelector('.worship-guide-title');
-    const imgs = wg.querySelectorAll('.temple-item');
-    
-       if (result.godNumber <= 5) {
-        title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-        imgs[0].style.display = "block";
-        imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
-        imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
-        imgs[1].style.display = "block";
-        imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
-        imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-    } else if (result.godNumber <= 9) {
-        title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-        imgs[0].style.display = "block";
-        imgs[0].querySelector('img').src = `image/2kouryuukaku.jpg`;
-        imgs[0].querySelector('.temple-label').textContent = `光龍閣`;
-        imgs[1].style.display = "block";
-        imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
-        imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-    } else {
-        title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください。";
-        imgs[0].style.display = "block";
-        imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
-        imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-        imgs[1].style.display = "none";
+    const BLINK_DURATION = 2100;
+    const DELAY = 500;
+
+    function applyBlink(elements) {
+        elements.forEach(el => {
+            el.style.opacity = '1';
+            el.classList.remove('blink-triple');
+            void el.offsetWidth;
+            el.classList.add('blink-triple');
+        });
     }
+
     setTimeout(() => {
+        applyBlink([resultNumEl, resultFortuneEl]);
+    }, 0);
+
+    setTimeout(() => {
+        applyBlink([resultMessageEl]);
+    }, BLINK_DURATION + DELAY * 1);
+
+    setTimeout(() => {
+        applyBlink([godNameEl, godReadingEl]);
+    }, BLINK_DURATION * 2 + DELAY * 2);
+
+    setTimeout(() => {
+        applyBlink([godInfoEl]);
+    }, BLINK_DURATION * 3 + DELAY * 3);
+
+    const FINAL_DELAY = BLINK_DURATION * 4 + DELAY * 4;
+
+    setTimeout(() => {
+        const wg = document.getElementById('worshipGuide');
+        const title = wg.querySelector('.worship-guide-title');
+        const imgs = wg.querySelectorAll('.temple-item');
+        
+        if (result.godNumber <= 5) {
+            title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
+            imgs[0].style.display = "block";
+            imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
+            imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
+            imgs[1].style.display = "block";
+            imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+            imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+        } else if (result.godNumber <= 9) {
+            title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
+            imgs[0].style.display = "block";
+            imgs[0].querySelector('img').src = `image/2kouryuukaku.jpg`;
+            imgs[0].querySelector('.temple-label').textContent = `光龍閣`;
+            imgs[1].style.display = "block";
+            imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+            imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+        } else {
+            title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください。";
+            imgs[0].style.display = "block";
+            imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
+            imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+            imgs[1].style.display = "none";
+        }
+        
         wg.classList.add('show');
-        setTimeout(() => {
-            wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            vibrate(50);
-        }, 500);
-    }, 2000);
+        wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        vibrate(50);
+    }, FINAL_DELAY + 300);
+
 }
 
 function enableAdminMode() {
@@ -393,17 +462,41 @@ function enableAdminMode() {
 function showAdminResult(index) {
     const result = omikujiResults.results[index];
     
-    document.getElementById('resultNumber').textContent = `${result.number}番`;
-    document.getElementById('resultFortune').textContent = result.fortune;
+    const resultNumEl = document.getElementById('resultNumber');
+    const resultFortuneEl = document.getElementById('resultFortune');
+
+    resultNumEl.textContent = `${result.number}番`;
+    resultFortuneEl.textContent = result.fortune;
     document.getElementById('resultMessage').textContent = result.message;
     
+    resultNumEl.classList.add('inline-result');
+    resultFortuneEl.classList.add('inline-result');
+
     const godHtml = `
-        <div class="god-name">${result.god}</div>
-        <div class="god-reading">(${result.godReading})</div>
-        <div class="god-info">ご縁仏の番号: ${result.godNumber}</div>
+        <div class=\"god-name\">${result.god}</div>
+        <div class=\"god-reading\">(${result.godReading})</div>
+        <div class=\"god-info\">ご縁仏の番号: ${result.godNumber}</div>
     `;
     document.getElementById('resultGod').innerHTML = godHtml;
     
+    const animTargets = [
+        resultNumEl,
+        resultFortuneEl,
+        document.getElementById('resultMessage'),
+        document.querySelector('#resultGod .god-name'),
+        document.querySelector('#resultGod .god-reading'),
+        document.querySelector('#resultGod .god-info')
+    ];
+    
+    animTargets.forEach(el => {
+        if(el) {
+            el.style.opacity = '1';
+            el.classList.remove('blink-triple');
+            void el.offsetWidth;
+            el.classList.add('blink-triple');
+        }
+    });
+
     document.getElementById('resultCard').classList.add('show');
     
     const wg = document.getElementById('worshipGuide');
@@ -414,21 +507,25 @@ function showAdminResult(index) {
         title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
         imgs[0].style.display = "block";
         imgs[1].style.display = "none";
+        imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
+        imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
     } else if (result.godNumber <= 9) {
         title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
         imgs[0].style.display = "none";
         imgs[1].style.display = "block";
+        imgs[1].querySelector('img').src = `image/2kouryuukaku.jpg`;
+        imgs[1].querySelector('.temple-label').textContent = `光龍閣`;
     } else {
         title.innerHTML = "ご縁仏を参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
         imgs[0].style.display = "block";
         imgs[1].style.display = "block";
     }
     
-    wg.classList.add('show');
     setTimeout(() => {
+        wg.classList.add('show');
         wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
         vibrate(50);
-    }, 2500);
+    }, 3000);
     
     document.getElementById('adminCounter').textContent = `${index + 1} / ${omikujiResults.results.length}`;
     document.getElementById('prevBtn').disabled = (index === 0);
