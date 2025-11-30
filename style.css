@@ -196,7 +196,7 @@ body {
 }
 
 .countdown-number {
-    font-size: 120px;
+    font-size: 80px;
     font-weight: bold;
     color: #ffd700;
     text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
@@ -204,7 +204,7 @@ body {
 }
 
 .countdown-number.start {
-    font-size: 80px;
+    font-size: 60px;
     animation: startFlash 0.8s ease-out;
 }
 
