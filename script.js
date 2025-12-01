@@ -2,9 +2,11 @@
 const simplePassword = "1234";
 const normalPassword = "5678";
 const adminPassword = "2256";
-const wg = document.getElementById('worshipGuide');
-const title = wg.querySelector('.worship-guide-title');
-const imgs = wg.querySelectorAll('.temple-item');
+// 以下の3行を削除しました（スクリプト実行停止の原因でした）
+// const wg = document.getElementById('worshipGuide');
+// const title = wg.querySelector('.worship-guide-title');
+// const imgs = wg.querySelectorAll('.temple-item');
+
 let currentMode = 'simple';
 let isAdminMode = false;
 let currentIndex = 0;
@@ -336,7 +338,7 @@ function completePowerCharge() {
     
     tapArea.style.pointerEvents = 'none';
     
-    // 【修正箇所】1秒待ってから showResult を実行するように変更
+    // 1秒待ってから showResult を実行
     tapArea.style.pointerEvents = "auto";
     setTimeout(() => {
         showResult();
@@ -345,7 +347,7 @@ function completePowerCharge() {
         powerData.charging = false;
         powerData.complete = false;
         powerData.startTime = null;
-    }, 1000); // 1000ミリ秒 = 1秒後に実行
+    }, 1000); 
 }
 
 function showResult() {
@@ -360,8 +362,12 @@ function showResult() {
     const resultMessageEl = document.getElementById('resultMessage');
     const resultGodEl = document.getElementById('resultGod');
     
-    // 【修正箇所】ここでスクロールを実行
-    resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 【修正・追加箇所】画面全体のスクロールを使用
+    // resultCardの画面上端からの位置を取得
+    const yOffset = resultCard.getBoundingClientRect().top + window.scrollY;
+
+    // 画面全体をその位置までスクロールさせる
+    window.scroll({ top: yOffset, behavior: 'smooth' });
 
     resultNumEl.textContent = `${result.number}番`;
     resultFortuneEl.textContent = result.fortune;
