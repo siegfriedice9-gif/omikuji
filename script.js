@@ -346,7 +346,6 @@ function completePowerCharge() {
         powerData.startTime = null;
     }, 1500);
 }
-
 function showResult() {
     const result = powerData.selectedResult;
     
@@ -359,6 +358,9 @@ function showResult() {
     const resultMessageEl = document.getElementById('resultMessage');
     const resultGodEl = document.getElementById('resultGod');
     
+    // 【追加箇所】結果カードが表示される前に、画面上部にスクロールする
+    resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     resultNumEl.textContent = `${result.number}番`;
     resultFortuneEl.textContent = result.fortune;
     resultMessageEl.textContent = result.message;
@@ -450,6 +452,109 @@ function showResult() {
     }, FINAL_DELAY + 300);
 
 }
+// function showResult() {
+//     const result = powerData.selectedResult;
+    
+//     document.getElementById('powerChargeContainer').classList.remove('active');
+//     document.getElementById('drawBtn').style.display = 'inline-block';
+    
+//     const resultCard = document.getElementById('resultCard');
+//     const resultNumEl = document.getElementById('resultNumber');
+//     const resultFortuneEl = document.getElementById('resultFortune');
+//     const resultMessageEl = document.getElementById('resultMessage');
+//     const resultGodEl = document.getElementById('resultGod');
+    
+//     resultNumEl.textContent = `${result.number}番`;
+//     resultFortuneEl.textContent = result.fortune;
+//     resultMessageEl.textContent = result.message;
+    
+//     resultNumEl.classList.add('inline-result');
+//     resultFortuneEl.classList.add('inline-result');
+    
+//     const godHtml = `
+//         <div class=\"god-name\">${result.god}</div>
+//         <div class=\"god-reading\">(${result.godReading})</div>
+//         <div class=\"god-info\">ご縁仏の番号: ${result.godNumber}</div>
+//     `;
+//     resultGodEl.innerHTML = godHtml;
+    
+//     resultNumEl.style.opacity = '0';
+//     resultFortuneEl.style.opacity = '0';
+//     resultMessageEl.style.opacity = '0';
+//     const godNameEl = resultGodEl.querySelector('.god-name');
+//     const godReadingEl = resultGodEl.querySelector('.god-reading');
+//     const godInfoEl = resultGodEl.querySelector('.god-info');
+//     godNameEl.style.opacity = '0';
+//     godReadingEl.style.opacity = '0';
+//     godInfoEl.style.opacity = '0';
+
+//     resultCard.classList.add('show');
+    
+//     const BLINK_DURATION = 2100;
+//     const DELAY = 500;
+
+//     function applyBlink(elements) {
+//         elements.forEach(el => {
+//             el.style.opacity = '1';
+//             el.classList.remove('blink-triple');
+//             void el.offsetWidth;
+//             el.classList.add('blink-triple');
+//         });
+//     }
+
+//     setTimeout(() => {
+//         applyBlink([resultNumEl, resultFortuneEl]);
+//     }, 0);
+
+//     setTimeout(() => {
+//         applyBlink([resultMessageEl]);
+//     }, BLINK_DURATION + DELAY * 1);
+
+//     setTimeout(() => {
+//         applyBlink([godNameEl, godReadingEl]);
+//     }, BLINK_DURATION * 2 + DELAY * 2);
+
+//     setTimeout(() => {
+//         applyBlink([godInfoEl]);
+//     }, BLINK_DURATION * 3 + DELAY * 3);
+
+//     const FINAL_DELAY = BLINK_DURATION * 4 + DELAY * 4;
+
+//     setTimeout(() => {
+//         const wg = document.getElementById('worshipGuide');
+//         const title = wg.querySelector('.worship-guide-title');
+//         const imgs = wg.querySelectorAll('.temple-item');
+        
+//         if (result.godNumber <= 5) {
+//             title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
+//             imgs[0].style.display = "block";
+//             imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
+//             imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
+//             imgs[1].style.display = "block";
+//             imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+//             imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+//         } else if (result.godNumber <= 9) {
+//             title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
+//             imgs[0].style.display = "block";
+//             imgs[0].querySelector('img').src = `image/2kouryuukaku.jpg`;
+//             imgs[0].querySelector('.temple-label').textContent = `光龍閣`;
+//             imgs[1].style.display = "block";
+//             imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+//             imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+//         } else {
+//             title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください。";
+//             imgs[0].style.display = "block";
+//             imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
+//             imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+//             imgs[1].style.display = "none";
+//         }
+        
+//         wg.classList.add('show');
+//         wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+//         vibrate(50);
+//     }, FINAL_DELAY + 300);
+
+// }
 
 function enableAdminMode() {
     isAdminMode = true;
