@@ -490,7 +490,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const exitBtn = document.getElementById('exitBtn');
     if (exitBtn) {
         exitBtn.addEventListener('click', function() {
+            // ブラウザタブを閉じる試み
             window.close();
+            
+            // window.close()が効かない場合のフォールバック
+            // (ユーザーが開いたタブではない場合など)
+            setTimeout(function() {
+                // about:blankに移動してから閉じる試み
+                window.location.href = 'about:blank';
+                window.close();
+                
+                // それでも閉じられない場合は通知
+                setTimeout(function() {
+                    if (!window.closed) {
+                        alert('ブラウザのタブを手動で閉じてください。');
+                    }
+                }, 100);
+            }, 100);
         });
     }
 
@@ -545,7 +561,20 @@ function showResult() {
     const drawBtn = document.getElementById('drawBtn');
     drawBtn.textContent = 'おみくじを終了';
     drawBtn.onclick = function() {
+        // ブラウザタブを閉じる試み
         window.close();
+        
+        // window.close()が効かない場合のフォールバック
+        setTimeout(function() {
+            window.location.href = 'about:blank';
+            window.close();
+            
+            setTimeout(function() {
+                if (!window.closed) {
+                    alert('ブラウザのタブを手動で閉じてください。');
+                }
+            }, 100);
+        }, 100);
     };
     drawBtn.style.display = 'inline-block';
 
