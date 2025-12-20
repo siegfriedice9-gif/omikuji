@@ -1,16 +1,18 @@
 // ==========================
-// script.js – 完全版 (Part A of 4)
-// – For index.html provided by user
+// script.js – 完全版
 // ==========================
 
-// パスワード設定(修正①: 1234削除、5678→2026)
+// パスワード設定
 const normalPassword = "2026";
 const adminPassword = "2256";
 
 // モード / 管理変数
-let currentMode = 'normal'; // simple削除
+let currentMode = 'normal';
 let isAdminMode = false;
 let currentIndex = 0;
+
+// 閲覧数カウント (管理者モード用)
+let viewCount = 0;
 
 // 振動(モバイル向け)
 function vibrate(pattern) {
@@ -21,7 +23,7 @@ function vibrate(pattern) {
 let powerData = { power: 0, tapCount: 0, charging: false, complete: false, selectedResult: null, startTime: null, countdownTimer: null };
 
 // =============================
-// omikujiResults(TXTを完全反映、number 1~54、weightは出現率の数値)
+// omikujiResults
 // =============================
 const omikujiResults = [
     { number: 1, fortune: "大吉", message: "素晴らしい1年となるでしょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
@@ -63,15 +65,7 @@ const omikujiResults = [
     { number: 37, fortune: "突破吉", message: "勢いで押すと結果が出ます", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, weight: 2 },
     { number: 38, fortune: "魅力吉", message: "人に聞くと自分の知らない発見有り", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, weight: 2 },
     { number: 39, fortune: "武士道吉", message: "弱音を見せないで行動すると味方が増えます", god: "焔摩天", godReading: "えんまてん", godNumber: 5, weight: 2 },
-    { number: 40, fortune: "挑戦吉", message: "チャレンジが実を結ぶ年", god: "梵天", godReading: "ぼんてん", godNumber: 5, weight: 2 }
-];
-
-// ==========================
-// script.js – 完全版 (Part B of 4)
-// ==========================
-
-// 続きのリストを push(41~54)
-omikujiResults.push(
+    { number: 40, fortune: "挑戦吉", message: "チャレンジが実を結ぶ年", god: "梵天", godReading: "ぼんてん", godNumber: 5, weight: 2 },
     { number: 41, fortune: "二度吉", message: "今年は幸せのピークが2度有り", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, weight: 2 },
     { number: 42, fortune: "月一吉", message: "月に1回は良いことが有るでしょう", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, weight: 2 },
     { number: 43, fortune: "果報吉", message: "寝れば寝るほど大吉が訪れます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
@@ -86,12 +80,10 @@ omikujiResults.push(
     { number: 52, fortune: "小吉", message: "もやもやが全て水に流せます", god: "水天", godReading: "すいてん", godNumber: 5, weight: 2 },
     { number: 53, fortune: "鬼吉", message: "強い心が身に付く年になります", god: "不動明王", godReading: "ふどうみょうおう", godNumber: 7, weight: 1 },
     { number: 54, fortune: "守護吉", message: "振れない心を得られる自信が付くでしょう", god: "不動明王", godReading: "ふどうみょうおう", godNumber: 7, weight: 1 }
-);
+];
 
 // =============================
 // 重み付き抽選ロジック
-// -----------------------------
-// 重み(weight)合計を作り、その範囲で乱数を取り該当アイテムを返す
 // =============================
 function weightedRandom(list) {
     const total = list.reduce((sum, r) => sum + (r.weight || 0), 0);
@@ -104,41 +96,71 @@ function weightedRandom(list) {
 }
 
 // =============================
-// ドロー(抽選)ロジック(既存UIに合わせる)
-// 修正②: simple削除、normalのみ(必ずゲーム実施)
+// ドロー(抽選)ロジック
 // =============================
 function drawOmikuji() {
-    // UI 初期化
     const button = document.getElementById('drawBtn');
     const resultCard = document.getElementById('resultCard');
     const powerContainer = document.getElementById('powerChargeContainer');
 
     if (!button || !resultCard || !powerContainer) {
-        console.error("必要な要素が見つかりません: drawBtn/resultCard/powerChargeContainer");
+        console.error("必要な要素が見つかりません");
         return;
+    }
+
+    // 通常モードの場合は閲覧数をカウント
+    if (!isAdminMode) {
+        viewCount++;
+        saveViewCount();
     }
 
     button.style.display = 'none';
     resultCard.classList.remove('show');
     document.getElementById('worshipGuide').classList.remove('show');
 
-    // 選択(重み付き)
     const selected = weightedRandom(omikujiResults);
     powerData.selectedResult = selected;
 
-    // 通常モード: チャージ演出(simpleモード削除)
     powerContainer.classList.remove('active');
     void powerContainer.offsetWidth;
     powerContainer.classList.add('active');
     initPowerCharge();
 }
 
-// ==========================
-// script.js – 完全版 (Part C of 4)
-// ==========================
+// =============================
+// 閲覧数の保存と読み込み (localStorage使用)
+// =============================
+function saveViewCount() {
+    try {
+        localStorage.setItem('omikuji_view_count', viewCount.toString());
+    } catch (e) {
+        console.error('閲覧数の保存に失敗しました', e);
+    }
+}
+
+function loadViewCount() {
+    try {
+        const saved = localStorage.getItem('omikuji_view_count');
+        if (saved) {
+            viewCount = parseInt(saved, 10) || 0;
+        }
+    } catch (e) {
+        console.error('閲覧数の読み込みに失敗しました', e);
+    }
+}
+
+// 管理者モードで閲覧数を表示
+function updateViewCountDisplay() {
+    if (isAdminMode) {
+        const counterEl = document.getElementById('adminCounter');
+        if (counterEl) {
+            counterEl.textContent = `${currentIndex + 1} / ${omikujiResults.length} | 閲覧数: ${viewCount}`;
+        }
+    }
+}
 
 // =============================
-// パワーチャージ関連(カウントダウン→タップでゲージを増やす)
+// パワーチャージ関連
 // =============================
 function initPowerCharge() {
     powerData.power = 0;
@@ -158,7 +180,7 @@ function initPowerCharge() {
 
     if (!countdownArea || !gameArea || !countdownNumber) {
         console.error('ゲーム要素が見つかりません');
-        showResult(); // フォールバック
+        showResult();
         return;
     }
 
@@ -214,7 +236,6 @@ function startPowerCharge() {
     gauge.classList.remove('complete');
     cheerMsg.classList.remove('complete');
 
-    // タップ領域をクローンしてリスナーをリセット
     const newTapArea = tapArea.cloneNode(true);
     tapArea.parentNode.replaceChild(newTapArea, tapArea);
 
@@ -223,8 +244,7 @@ function startPowerCharge() {
         if (!powerData.charging || powerData.complete) return;
 
         powerData.tapCount++;
-        // 1回のタップで増える割合に多少のランダム性を入れる
-        const increase = 8 + Math.floor(Math.random() * 3); // 8~10
+        const increase = 8 + Math.floor(Math.random() * 3);
         powerData.power = Math.min(powerData.power + increase, 100);
 
         fill.style.width = powerData.power + '%';
@@ -253,7 +273,6 @@ function startPowerCharge() {
     newTapArea.addEventListener('click', handleTap);
     newTapArea.addEventListener('touchstart', handleTap);
 
-    // カウントダウン(ゲーム制限 5秒)
     powerData.countdownTimer = setInterval(() => {
         const elapsed = Math.floor((Date.now() - powerData.startTime) / 1000);
         const remaining = 5 - elapsed;
@@ -285,19 +304,8 @@ function completePowerCharge() {
     const tapArea = document.getElementById('tapArea');
 
     if (powerData.tapCount === 0) {
-        // タップなしの場合:結果カードへスクロール
         if (cheerMsg) cheerMsg.textContent = '時間切れです...';
-        
-        // 結果表示前にスクロール
-        setTimeout(() => {
-            const resultCard = document.getElementById('resultCard');
-            if (resultCard) {
-                resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 500);
-
     } else {
-        // タップありの場合:完了演出
         if (gauge) gauge.classList.add('complete');
         if (cheerMsg) {
             cheerMsg.textContent = 'ご縁仏降臨☆';
@@ -305,13 +313,10 @@ function completePowerCharge() {
         }
     }
 
-    // 一時的にタップ無効(アニメーション等のため)
     if (tapArea) tapArea.style.pointerEvents = 'none';
 
-    // 1秒後に結果表示
     setTimeout(() => {
         showResult();
-        // リセット
         powerData.power = 0;
         powerData.tapCount = 0;
         powerData.charging = false;
@@ -322,13 +327,24 @@ function completePowerCharge() {
 }
 
 // =============================
-// 管理者(Admin)モード / 表示切替
+// 管理者(Admin)モード
 // =============================
 function enableAdminMode() {
     isAdminMode = true;
     currentIndex = 0;
     document.getElementById('drawBtn').style.display = 'none';
     document.getElementById('adminNavigation').classList.add('show');
+    
+    // 管理者モードでも終了ボタンを表示
+    const exitBtn = document.getElementById('exitBtn');
+    if (exitBtn) {
+        exitBtn.style.display = 'inline-block';
+    }
+    
+    // 閲覧数を読み込んで表示
+    loadViewCount();
+    updateViewCountDisplay();
+    
     showAdminResult(currentIndex);
 }
 
@@ -384,7 +400,8 @@ function showAdminResult(index) {
         setTimeout(()=>{ wg.classList.add('show'); wg.scrollIntoView({behavior:'smooth', block:'start'}); vibrate(50); }, 3000);
     }
 
-    document.getElementById('adminCounter').textContent = `${index + 1} / ${omikujiResults.length}`;
+    // 閲覧数を含めたカウンター表示
+    updateViewCountDisplay();
     document.getElementById('prevBtn').disabled = (index === 0);
     document.getElementById('nextBtn').disabled = (index === omikujiResults.length - 1);
 }
@@ -404,8 +421,7 @@ function showNext() {
 }
 
 // =============================
-// パスワードチェックと初期表示ロジック
-// 修正①: simplePassword削除、normalPassword→2026
+// パスワードチェック
 // =============================
 function checkPassword() {
     const input = document.getElementById('passwordInput').value;
@@ -432,8 +448,11 @@ function checkPassword() {
     if (isAdminMode) enableAdminMode();
 }
 
-// ページロード時の設定(ボタンのEnter対応・セッション復帰)
+// ページロード時の設定
 document.addEventListener('DOMContentLoaded', function() {
+    // 閲覧数を読み込み
+    loadViewCount();
+    
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
         @keyframes blinkTriple {
@@ -467,6 +486,14 @@ document.addEventListener('DOMContentLoaded', function() {
         checkBtn.addEventListener('click', checkPassword);
     }
 
+    // 終了ボタンのイベント設定
+    const exitBtn = document.getElementById('exitBtn');
+    if (exitBtn) {
+        exitBtn.addEventListener('click', function() {
+            window.close();
+        });
+    }
+
     // リロード時に認証セッションが残っていれば復帰
     if (sessionStorage.getItem('omikuji_auth') === 'true') {
         const savedMode = sessionStorage.getItem('omikuji_mode');
@@ -483,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // =============================
-// 画面切替(パスワード画面 → おみくじ画面)
+// 画面切替
 // =============================
 function showOmikujiScreen() {
     const pwd = document.getElementById('passwordScreen');
@@ -491,7 +518,6 @@ function showOmikujiScreen() {
     if (pwd) pwd.classList.add('hidden');
     if (omikuji) omikuji.classList.add('active');
 
-    // 非表示初期化
     const resultCard = document.getElementById('resultCard');
     const wg = document.getElementById('worshipGuide');
     const adminNav = document.getElementById('adminNavigation');
@@ -502,13 +528,9 @@ function showOmikujiScreen() {
     if (drawBtn) drawBtn.style.display = 'inline-block';
 }
 
-// ==========================
-// script.js – 完全版 (Part D of 4)
-// 修正②: ゲーム実施後、「おみくじを引く」→「おみくじを終了」に変更し、タブを閉じる
-// ==========================
-
 // =============================
-// 結果表示処理(UI に合わせてアニメーションを入れる)
+// 結果表示処理
+// 修正: スクロール→結果表示の順番に変更
 // =============================
 function showResult() {
     const result = powerData.selectedResult;
@@ -519,9 +541,9 @@ function showResult() {
 
     document.getElementById('powerChargeContainer').classList.remove('active');
     
-    // 修正②: ボタンを「おみくじを終了」に変更し、クリックでタブを閉じる
+    // ボタンを「おみくじを終了」に変更
     const drawBtn = document.getElementById('drawBtn');
-    drawBtn.textContent = '🎋 おみくじを終了';
+    drawBtn.textContent = 'おみくじを終了';
     drawBtn.onclick = function() {
         window.close();
     };
@@ -533,11 +555,7 @@ function showResult() {
     const resultMessageEl = document.getElementById('resultMessage');
     const resultGodEl = document.getElementById('resultGod');
 
-    // スクロールして見える位置へ(安全に)
-    if (resultCard) {
-        resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
+    // データをセット（まだ非表示）
     resultNumEl.textContent = `${result.number}番`;
     resultFortuneEl.textContent = result.fortune;
     resultMessageEl.textContent = result.message;
@@ -545,7 +563,6 @@ function showResult() {
     resultNumEl.classList.add('inline-result');
     resultFortuneEl.classList.add('inline-result');
 
-    // ご縁仏情報
     const godHtml = `
         <div class="god-name">${result.god}</div>
         <div class="god-reading">(${result.godReading})</div>
@@ -553,7 +570,7 @@ function showResult() {
     `;
     resultGodEl.innerHTML = godHtml;
 
-    // 初期透明度リセット(アニメ用)
+    // 全ての要素を透明にして非表示状態にする
     [resultNumEl, resultFortuneEl, resultMessageEl].forEach(el => { if (el) el.style.opacity = '0'; });
     const godNameEl = resultGodEl.querySelector('.god-name');
     const godReadingEl = resultGodEl.querySelector('.god-reading');
@@ -562,65 +579,73 @@ function showResult() {
     if (godReadingEl) godReadingEl.style.opacity = '0';
     if (godInfoEl) godInfoEl.style.opacity = '0';
 
+    // カードを表示（まだ中身は透明）
     resultCard.classList.add('show');
 
-    const BLINK_DURATION = 2100;
-    const DELAY = 500;
-
-    function applyBlink(elements) {
-        elements.forEach(el => {
-            if (!el) return;
-            el.style.opacity = '1';
-            el.classList.remove('blink-triple');
-            void el.offsetWidth;
-            el.classList.add('blink-triple');
-        });
+    // 修正: まずスクロールを実行してから、アニメーションを開始
+    if (resultCard) {
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    setTimeout(() => applyBlink([resultNumEl, resultFortuneEl]), 0);
-    setTimeout(() => applyBlink([resultMessageEl]), BLINK_DURATION + DELAY * 1);
-    setTimeout(() => applyBlink([godNameEl, godReadingEl]), BLINK_DURATION * 2 + DELAY * 2);
-    setTimeout(() => applyBlink([godInfoEl]), BLINK_DURATION * 3 + DELAY * 3);
-
-    const FINAL_DELAY = BLINK_DURATION * 4 + DELAY * 4;
-
+    // スクロール完了を待ってからアニメーション開始（1秒待機）
     setTimeout(() => {
-        // worshipGuide 表示切替(既存ロジックを再現)
-        const wg = document.getElementById('worshipGuide');
-        const title = wg ? wg.querySelector('.worship-guide-title') : null;
-        const imgs = wg ? wg.querySelectorAll('.temple-item') : null;
+        const BLINK_DURATION = 2100;
+        const DELAY = 500;
 
-        if (wg && title && imgs && imgs.length >= 2) {
-            wg.classList.add('show');
-            wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            vibrate(50);
-
-            if (result.godNumber <= 5) {
-                title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-                imgs[0].style.display = "block";
-                imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
-                imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
-                imgs[1].style.display = "block";
-                imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
-                imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-            } else if (result.godNumber <= 9) {
-                title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-                imgs[0].style.display = "block";
-                imgs[0].querySelector('img').src = `image/2kouryuukaku.jpg`;
-                imgs[0].querySelector('.temple-label').textContent = `光龍閣`;
-                imgs[1].style.display = "block";
-                imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
-                imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-            } else {
-                title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください。";
-                imgs[0].style.display = "block";
-                imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
-                imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
-                imgs[1].style.display = "none";
-            }
-            wg.classList.add('show');
-            wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            vibrate(50);
+        function applyBlink(elements) {
+            elements.forEach(el => {
+                if (!el) return;
+                el.style.opacity = '1';
+                el.classList.remove('blink-triple');
+                void el.offsetWidth;
+                el.classList.add('blink-triple');
+            });
         }
-    }, FINAL_DELAY + 300);
+
+        setTimeout(() => applyBlink([resultNumEl, resultFortuneEl]), 0);
+        setTimeout(() => applyBlink([resultMessageEl]), BLINK_DURATION + DELAY * 1);
+        setTimeout(() => applyBlink([godNameEl, godReadingEl]), BLINK_DURATION * 2 + DELAY * 2);
+        setTimeout(() => applyBlink([godInfoEl]), BLINK_DURATION * 3 + DELAY * 3);
+
+        const FINAL_DELAY = BLINK_DURATION * 4 + DELAY * 4;
+
+        setTimeout(() => {
+            const wg = document.getElementById('worshipGuide');
+            const title = wg ? wg.querySelector('.worship-guide-title') : null;
+            const imgs = wg ? wg.querySelectorAll('.temple-item') : null;
+
+            if (wg && title && imgs && imgs.length >= 2) {
+                wg.classList.add('show');
+                wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                vibrate(50);
+
+                if (result.godNumber <= 5) {
+                    title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
+                    imgs[0].style.display = "block";
+                    imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
+                    imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
+                    imgs[1].style.display = "block";
+                    imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+                    imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+                } else if (result.godNumber <= 9) {
+                    title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
+                    imgs[0].style.display = "block";
+                    imgs[0].querySelector('img').src = `image/2kouryuukaku.jpg`;
+                    imgs[0].querySelector('.temple-label').textContent = `光龍閣`;
+                    imgs[1].style.display = "block";
+                    imgs[1].querySelector('img').src = `image/${result.godNumber}.jpg`;
+                    imgs[1].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+                } else {
+                    title.innerHTML = "参拝されまして<br>より深いご利益をお授かりください。";
+                    imgs[0].style.display = "block";
+                    imgs[0].querySelector('img').src = `image/${result.godNumber}.jpg`;
+                    imgs[0].querySelector('.temple-label').textContent = `ご縁仏 ${result.godNumber}`;
+                    imgs[1].style.display = "none";
+                }
+                wg.classList.add('show');
+                wg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                vibrate(50);
+            }
+        }, FINAL_DELAY + 300);
+    }, 1000); // スクロール完了を待つ時間
 }
