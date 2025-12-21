@@ -360,9 +360,9 @@ function showAdminResult(index) {
     document.getElementById('resultMessage').textContent = result.message;
 
     const godHtml = `
-        <div class="god-name">${result.god}</div>
-        <div class="god-reading">(${result.godReading})</div>
         <div class="god-info">ご縁仏の番号: ${result.godNumber}</div>
+        <div class="god-name">${result.god}</div>
+        <div class="god-reading">(${result.godReading})</div>        
     `;
     document.getElementById('resultGod').innerHTML = godHtml;
 
