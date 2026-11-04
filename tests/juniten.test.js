@@ -204,11 +204,12 @@ const canonicalResults = Array.from(results, result => ({
 const canonicalHash = crypto.createHash('sha256')
   .update(JSON.stringify(canonicalResults))
   .digest('hex');
-assert.equal(canonicalHash, '7020c80b8e9780097c14baf21240d39725bdc5547a93853fdcb240631f30cdae', 'all 54 source records must match the approved dataset');
+assert.equal(canonicalHash, '9d312de3de6f8d433d008863446149b5b6a4a409177827a3dc29982fd5416010', 'all 54 source records must match the approved dataset');
 
 const lowWeightNumbers = new Set([3, 4, 10, 15, 27, 48, 53, 54]);
 for (const result of results) {
   assert.equal(result.weight, lowWeightNumbers.has(result.number) ? 1 : 2, `weight ${result.number}`);
+  assert.ok(result.weight > 0, `weight ${result.number} must be positive`);
 }
 assert.equal(results.reduce((total, result) => total + result.weight, 0), 100, 'weights must total 100%');
 
@@ -220,7 +221,7 @@ assert.equal(results[40].message, '今年は幸せのピークが２度有り');
 assert.equal(results[41].message, '月に１回は良いことが有るでしょう');
 assert.deepEqual(
   canonicalResults[46],
-  {number: 47, fortune: '変化吉', message: '思ってる事をやってみましょう', god: '青面金剛アオメンコンゴウ', godReading: 'しょうめんこんごう', godNumber: 10, weight: 2}
+  {number: 47, fortune: '変化吉', message: '思ってる事をやってみましょう', god: '青面金剛', godReading: 'しょうめんこんごう', godNumber: 10, weight: 2}
 );
 assert.deepEqual(
   canonicalResults[50],
@@ -323,6 +324,10 @@ function assertRendered(result, mode) {
   if (!expected) {
     assert.equal(info.textContent, `ご縁仏の番号: ${result.godNumber}`, `${mode} legacy number ${result.number}`);
     assert.equal(extras.length, 0, `${mode} no stale extra image ${result.number}`);
+    if (result.number === 47 && mode === 'normal') {
+      assert.equal(items.children[0].querySelector('img').src, 'image/10.jpg', `${mode} result 47 Shomen Kongo image`);
+      assert.notEqual(items.children[0].querySelector('img').src, 'image/⑤_10.jpg', `${mode} result 47 must not use a Twelve Devas image`);
+    }
     return;
   }
   assert.equal(info.textContent, `ご縁仏の番号: ${expected.join('・')}`, `${mode} deity code ${result.number}`);
