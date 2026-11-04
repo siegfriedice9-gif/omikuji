@@ -192,11 +192,46 @@ assert.deepEqual(Array.from(results, result => result.number), Array.from({lengt
 assert.equal(new Set(results.map(result => result.number)).size, 54, 'result numbers must be unique');
 assert.deepEqual(Array.from(vm.runInContext('[normalPassword, adminPassword]', context)), ['2026', '2256']);
 
+const canonicalResults = Array.from(results, result => ({
+  number: result.number,
+  fortune: result.fortune,
+  message: result.message,
+  god: result.god,
+  godReading: result.godReading,
+  godNumber: result.godNumber,
+  weight: result.weight
+}));
+const canonicalHash = crypto.createHash('sha256')
+  .update(JSON.stringify(canonicalResults))
+  .digest('hex');
+assert.equal(canonicalHash, '7020c80b8e9780097c14baf21240d39725bdc5547a93853fdcb240631f30cdae', 'all 54 source records must match the approved dataset');
+
+const lowWeightNumbers = new Set([3, 4, 10, 15, 27, 48, 53, 54]);
+for (const result of results) {
+  assert.equal(result.weight, lowWeightNumbers.has(result.number) ? 1 : 2, `weight ${result.number}`);
+}
+assert.equal(results.reduce((total, result) => total + result.weight, 0), 100, 'weights must total 100%');
+
+assert.equal(results[0].message, '素晴らしい１年となるでしょう');
+assert.equal(results[29].message, '異変を感じたら迷わず休め');
+assert.equal(results[33].fortune, '返却吉');
+assert.equal(results[35].message, '２度寝しても何とかなります');
+assert.equal(results[40].message, '今年は幸せのピークが２度有り');
+assert.equal(results[41].message, '月に１回は良いことが有るでしょう');
+assert.deepEqual(
+  canonicalResults[46],
+  {number: 47, fortune: '変化吉', message: '思ってる事をやってみましょう', god: '青面金剛アオメンコンゴウ', godReading: 'しょうめんこんごう', godNumber: 10, weight: 2}
+);
+assert.deepEqual(
+  canonicalResults[50],
+  {number: 51, fortune: '縁切り吉', message: '悪縁、腐れ縁がやっと切れます', god: '伊舎那天', godReading: 'いざなてん', godNumber: 5, weight: 2}
+);
+
 const expectedDeities = new Map([
   ['羅刹天', ['⑤_1']], ['水天', ['⑤_2']], ['風天', ['⑤_3']],
   ['毘沙門天', ['⑤_4']], ['日天・月天', ['⑤_5', '⑤_11']],
   ['焔摩天', ['⑤_6']], ['地天', ['⑤_7']], ['火天', ['⑤_8']],
-  ['帝釈天', ['⑤_9']], ['梵天', ['⑤_12']]
+  ['帝釈天', ['⑤_9']], ['伊舎那天', ['⑤_10']], ['梵天', ['⑤_12']]
 ]);
 
 for (const result of results) {
@@ -212,6 +247,8 @@ for (const result of results) {
 }
 assert.equal(results[24].god, '日天・月天');
 assert.deepEqual(Array.from(results[24].godImageNumbers), ['⑤_5', '⑤_11']);
+assert.equal(results[50].god, '伊舎那天');
+assert.deepEqual(Array.from(results[50].godImageNumbers), ['⑤_10']);
 
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'juniten_image_manifest.json'), 'utf8'));
 assert.equal(manifest.length, 12);
@@ -281,6 +318,8 @@ function assertRendered(result, mode) {
   assert.equal(document.getElementById('resultNumber').textContent, `${result.number}番`, `${mode} number ${result.number}`);
   assert.equal(document.getElementById('resultFortune').textContent, result.fortune, `${mode} fortune ${result.number}`);
   assert.equal(document.getElementById('resultMessage').textContent, result.message, `${mode} message ${result.number}`);
+  assert.equal(document.getElementById('resultGod').querySelector('.god-name').textContent, result.god, `${mode} god ${result.number}`);
+  assert.equal(document.getElementById('resultGod').querySelector('.god-reading').textContent, `(${result.godReading})`, `${mode} reading ${result.number}`);
   if (!expected) {
     assert.equal(info.textContent, `ご縁仏の番号: ${result.godNumber}`, `${mode} legacy number ${result.number}`);
     assert.equal(extras.length, 0, `${mode} no stale extra image ${result.number}`);
@@ -290,6 +329,9 @@ function assertRendered(result, mode) {
   const deityItem = items.children[1];
   assert.equal(deityItem.style.display, 'block', `${mode} first deity visible ${result.number}`);
   assert.equal(deityItem.querySelector('img').src, `image/${expected[0]}.jpg`, `${mode} first image ${result.number}`);
+  if (result.number === 51) {
+    assert.equal(deityItem.querySelector('img').src, 'image/⑤_10.jpg', `${mode} result 51 Isanaten image`);
+  }
   assert.equal(extras.length, expected.length - 1, `${mode} extra image count ${result.number}`);
   if (expected.length === 2) {
     assert.equal(extras[0].querySelector('img').src, 'image/⑤_11.jpg');
@@ -309,4 +351,4 @@ for (let index = 0; index < results.length; index++) {
   assertRendered(results[index], 'normal');
 }
 
-console.log('PASS: 54 results, both display modes, 12 image mappings, temple map, image integrity, and script loading');
+console.log('PASS: approved 54-result dataset, 100% weights, both display modes, 12 image mappings, temple map, image integrity, and script loading');
