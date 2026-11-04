@@ -311,6 +311,63 @@ function triggerObservers() { observerCallbacks.forEach(callback => callback([])
 function imageItems() {
   return document.getElementById('worshipGuide').querySelector('.temple-images');
 }
+function itemImageState(item) {
+  return {
+    display: item.style.display === 'none' ? 'none' : 'block',
+    src: item.querySelector('img').src,
+    label: item.querySelector('.temple-label').textContent
+  };
+}
+function deityState(code, display = 'block') {
+  return {
+    display,
+    src: `image/${code}.jpg`,
+    label: `ご縁仏 ${code}・${allExpectedImages.get(code)}`
+  };
+}
+function expectedAdminImageState(result, expected) {
+  if (expected) {
+    return [
+      {display: 'block', src: 'image/1yakushidou.jpg', label: '薬師堂'},
+      deityState(expected[0]),
+      ...expected.slice(1).map(code => deityState(code))
+    ];
+  }
+  const legacy = {src: `image/${result.godNumber}.jpg`, label: `ご縁仏 ${result.godNumber}`};
+  if (result.godNumber <= 5) {
+    return [
+      {display: 'block', src: 'image/1yakushidou.jpg', label: '薬師堂'},
+      {display: 'none', ...legacy}
+    ];
+  }
+  if (result.godNumber <= 9) {
+    return [
+      {display: 'none', ...legacy},
+      {display: 'block', src: 'image/2kouryuukaku.jpg', label: '光龍閣'}
+    ];
+  }
+  return [
+    {display: 'block', ...legacy},
+    {display: 'none', ...legacy}
+  ];
+}
+function expectedNormalVisibleState(result, expected) {
+  if (expected) {
+    return [
+      {display: 'block', src: 'image/1yakushidou.jpg', label: '薬師堂'},
+      deityState(expected[0]),
+      ...expected.slice(1).map(code => deityState(code))
+    ];
+  }
+  const legacy = {display: 'block', src: `image/${result.godNumber}.jpg`, label: `ご縁仏 ${result.godNumber}`};
+  if (result.godNumber <= 5) {
+    return [{display: 'block', src: 'image/1yakushidou.jpg', label: '薬師堂'}, legacy];
+  }
+  if (result.godNumber <= 9) {
+    return [{display: 'block', src: 'image/2kouryuukaku.jpg', label: '光龍閣'}, legacy];
+  }
+  return [legacy];
+}
 function assertRendered(result, mode) {
   const expected = result.godNumber === 5 ? expectedDeities.get(result.god) : undefined;
   const info = document.querySelector('#resultGod .god-info');
@@ -321,6 +378,16 @@ function assertRendered(result, mode) {
   assert.equal(document.getElementById('resultMessage').textContent, result.message, `${mode} message ${result.number}`);
   assert.equal(document.getElementById('resultGod').querySelector('.god-name').textContent, result.god, `${mode} god ${result.number}`);
   assert.equal(document.getElementById('resultGod').querySelector('.god-reading').textContent, `(${result.godReading})`, `${mode} reading ${result.number}`);
+  const allImageStates = Array.from(items.children, itemImageState);
+  if (mode.startsWith('admin')) {
+    assert.deepEqual(allImageStates, expectedAdminImageState(result, expected), `${mode} complete image state ${result.number}`);
+  } else {
+    assert.deepEqual(
+      allImageStates.filter(item => item.display === 'block'),
+      expectedNormalVisibleState(result, expected),
+      `${mode} visible image state ${result.number}`
+    );
+  }
   if (!expected) {
     assert.equal(info.textContent, `ご縁仏の番号: ${result.godNumber}`, `${mode} legacy number ${result.number}`);
     assert.equal(extras.length, 0, `${mode} no stale extra image ${result.number}`);
@@ -350,10 +417,25 @@ for (let index = 0; index < results.length; index++) {
   assertRendered(results[index], 'admin');
 }
 
+const adminTransitionSequences = [
+  [46, 47, 48],
+  [47, 51, 47],
+  [25, 47],
+  [51, 25, 47]
+];
+for (const sequence of adminTransitionSequences) {
+  for (const number of sequence) {
+    const index = number - 1;
+    vm.runInContext(`isAdminMode = true; currentIndex = ${index}; showAdminResult(${index});`, context);
+    triggerObservers();
+    assertRendered(results[index], `admin transition ${sequence.join('→')}`);
+  }
+}
+
 for (let index = 0; index < results.length; index++) {
   vm.runInContext(`isAdminMode = false; powerData.selectedResult = omikujiResults[${index}]; showResult();`, context);
   triggerObservers();
   assertRendered(results[index], 'normal');
 }
 
-console.log('PASS: approved 54-result dataset, 100% weights, both display modes, 12 image mappings, temple map, image integrity, and script loading');
+console.log('PASS: approved 54-result dataset, 100% weights, all admin/normal image states, required transitions, 12 image mappings, temple map, image integrity, and script loading');

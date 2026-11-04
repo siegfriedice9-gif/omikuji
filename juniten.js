@@ -46,6 +46,26 @@
   function setDisplayIfChanged(element, value) {
     if (element && element.style.display !== value) element.style.display = value;
   }
+  function setTempleItem(item, display, src, label) {
+    if (!item) return;
+    setDisplayIfChanged(item, display);
+    setSrcIfChanged(item.querySelector('img'), src);
+    setTextIfChanged(item.querySelector('.temple-label'), label);
+  }
+
+  function restoreAdminBaseItems(result, baseItems) {
+    if (typeof isAdminMode === 'undefined' || !isAdminMode || !result || baseItems.length < 2) return;
+    if (result.godNumber <= 5) {
+      setTempleItem(baseItems[0], 'block', 'image/1yakushidou.jpg', '薬師堂');
+      setTempleItem(baseItems[1], 'none', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+    } else if (result.godNumber <= 9) {
+      setTempleItem(baseItems[0], 'none', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+      setTempleItem(baseItems[1], 'block', 'image/2kouryuukaku.jpg', '光龍閣');
+    } else {
+      setTempleItem(baseItems[0], 'block', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+      setTempleItem(baseItems[1], 'none', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+    }
+  }
 
   function activeResult() {
     if (typeof isAdminMode !== 'undefined' && isAdminMode &&
@@ -76,6 +96,7 @@
     // 54結果のうち十二天以外は元の表示処理に委ねる。
     if (!entries.length) {
       extraItems.forEach(el => el.remove());
+      restoreAdminBaseItems(result, baseItems);
       return;
     }
     if (baseItems.length < 2) return;

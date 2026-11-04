@@ -377,25 +377,37 @@ function showAdminResult(index) {
 
     const wg = document.getElementById('worshipGuide');
     const title = wg ? wg.querySelector('.worship-guide-title') : null;
-    const imgs = wg ? wg.querySelectorAll('.temple-item') : null;
+    const templeImages = wg ? wg.querySelector('.temple-images') : null;
+    const imgs = templeImages ? Array.from(templeImages.children).filter(item =>
+        item.classList.contains('temple-item') && !item.classList.contains('juniten-extra')
+    ) : [];
+
+    if (templeImages) {
+        Array.from(templeImages.querySelectorAll('.juniten-extra')).forEach(item => item.remove());
+    }
+
+    const setTempleItem = (item, display, src, label) => {
+        if (!item) return;
+        item.style.display = display;
+        const img = item.querySelector('img');
+        const text = item.querySelector('.temple-label');
+        if (img) img.src = src;
+        if (text) text.textContent = label;
+    };
 
     if (wg && title && imgs && imgs.length >= 2) {
         if (result.godNumber <= 5) {
             title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-            imgs[0].style.display = "block";
-            imgs[1].style.display = "none";
-            imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
-            imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
+            setTempleItem(imgs[0], "block", "image/1yakushidou.jpg", "薬師堂");
+            setTempleItem(imgs[1], "none", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
         } else if (result.godNumber <= 9) {
             title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-            imgs[0].style.display = "none";
-            imgs[1].style.display = "block";
-            imgs[1].querySelector('img').src = `image/2kouryuukaku.jpg`;
-            imgs[1].querySelector('.temple-label').textContent = `光龍閣`;
+            setTempleItem(imgs[0], "none", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+            setTempleItem(imgs[1], "block", "image/2kouryuukaku.jpg", "光龍閣");
         } else {
             title.innerHTML = "ご縁仏を参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-            imgs[0].style.display = "block";
-            imgs[1].style.display = "block";
+            setTempleItem(imgs[0], "block", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+            setTempleItem(imgs[1], "none", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
         }
         setTimeout(()=>{ wg.classList.add('show'); wg.scrollIntoView({behavior:'smooth', block:'start'}); vibrate(50); }, 3000);
     }
