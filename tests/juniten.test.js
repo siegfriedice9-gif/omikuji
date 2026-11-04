@@ -241,6 +241,11 @@ function jpegDimensions(buffer) {
   throw new Error('JPEG dimensions not found');
 }
 
+function pngDimensions(buffer) {
+  assert.deepEqual(Array.from(buffer.subarray(0, 8)), [137, 80, 78, 71, 13, 10, 26, 10]);
+  return {width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20)};
+}
+
 for (const item of manifest) {
   const file = path.join(root, ...item.filename.split('/'));
   const bytes = fs.readFileSync(file);
@@ -250,6 +255,19 @@ for (const item of manifest) {
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert.match(html, /<script src="script\.js\?v=20250101"><\/script>\s*<script src="juniten\.js\?v=20261104"><\/script>/);
+assert.match(html, /<img src="image\/3mitorizu\.png" alt="法楽寺見取り図" class="temple-map">/);
+assert.doesNotMatch(html, /src="image\/3mitorizu\.jpg"/);
+
+const mapFile = path.join(root, 'image', '3mitorizu.png');
+assert.ok(fs.existsSync(mapFile), 'the approved temple map PNG must exist');
+assert.deepEqual(pngDimensions(fs.readFileSync(mapFile)), {width: 1353, height: 1163});
+assert.ok(fs.existsSync(path.join(root, 'image', '3mitorizu.jpg')), 'the previous map must remain for rollback');
+
+for (const match of html.matchAll(/<img\s+[^>]*src="([^"]+)"/g)) {
+  const src = match[1].split('?')[0];
+  if (!src.startsWith('image/')) continue;
+  assert.ok(fs.existsSync(path.join(root, ...src.split('/'))), `referenced image must exist: ${src}`);
+}
 
 function triggerObservers() { observerCallbacks.forEach(callback => callback([])); }
 function imageItems() {
@@ -291,4 +309,4 @@ for (let index = 0; index < results.length; index++) {
   assertRendered(results[index], 'normal');
 }
 
-console.log('PASS: 54 results, both display modes, 12 image mappings, image integrity, and script loading');
+console.log('PASS: 54 results, both display modes, 12 image mappings, temple map, image integrity, and script loading');
