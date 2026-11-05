@@ -613,9 +613,6 @@ function showResult() {
 
     // カードを表示（まだ中身は透明）
     resultCard.classList.add('show');
-    if (!isAdminMode) {
-        document.dispatchEvent(new CustomEvent('omikuji:draw-result-shown'));
-    }
 
     // 修正: まずスクロールを実行してから、アニメーションを開始
     if (resultCard) {
@@ -637,7 +634,13 @@ function showResult() {
             });
         }
 
-        setTimeout(() => applyBlink([resultNumEl, resultFortuneEl]), 0);
+        setTimeout(() => {
+            applyBlink([resultNumEl, resultFortuneEl]);
+            // 運勢が画面上に表示されたタイミングで一回だけ記録する。
+            if (!isAdminMode) {
+                document.dispatchEvent(new CustomEvent('omikuji:draw-result-shown'));
+            }
+        }, 0);
         setTimeout(() => applyBlink([resultMessageEl]), BLINK_DURATION + DELAY * 1);
         setTimeout(() => applyBlink([godNameEl, godReadingEl]), BLINK_DURATION * 2 + DELAY * 2);
         setTimeout(() => applyBlink([godInfoEl]), BLINK_DURATION * 3 + DELAY * 3);
