@@ -11,9 +11,6 @@ let currentMode = 'normal';
 let isAdminMode = false;
 let currentIndex = 0;
 
-// 閲覧数カウント (管理者モード用)
-let viewCount = 0;
-
 // 振動(モバイル向け)
 function vibrate(pattern) {
     if ('vibrate' in navigator) navigator.vibrate(pattern);
@@ -124,35 +121,13 @@ function drawOmikuji() {
 }
 
 // =============================
-// 閲覧数の保存と読み込み (localStorage使用)
+// 管理者モードの番号ナビゲーション
+// 実行統計はGoogleスプレッドシートで確認する。
 // =============================
-function saveViewCount() {
-    try {
-        localStorage.setItem('omikuji_view_count', viewCount.toString());
-    } catch (e) {
-        console.error('閲覧数の保存に失敗しました', e);
-    }
-}
-
-function loadViewCount() {
-    try {
-        const saved = localStorage.getItem('omikuji_view_count');
-        if (saved) {
-            viewCount = parseInt(saved, 10) || 0;
-        }
-    } catch (e) {
-        console.error('閲覧数の読み込みに失敗しました', e);
-    }
-}
-
-// 管理者モードで閲覧数を表示
 function updateViewCountDisplay() {
-    if (isAdminMode) {
-        const counterEl = document.getElementById('adminCounter');
-        if (counterEl) {
-            counterEl.textContent = `${currentIndex + 1} / ${omikujiResults.length}`;
-        }
-    }
+    if (!isAdminMode) return;
+    const counterEl = document.getElementById('adminCounter');
+    if (counterEl) counterEl.textContent = `${currentIndex + 1} / ${omikujiResults.length}`;
 }
 
 // =============================
