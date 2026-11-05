@@ -337,13 +337,13 @@ function expectedAdminImageState(result, expected) {
   if (result.godNumber <= 5) {
     return [
       {display: 'block', src: 'image/1yakushidou.jpg', label: '薬師堂'},
-      {display: 'none', ...legacy}
+      {display: 'block', ...legacy}
     ];
   }
   if (result.godNumber <= 9) {
     return [
-      {display: 'none', ...legacy},
-      {display: 'block', src: 'image/2kouryuukaku.jpg', label: '光龍閣'}
+      {display: 'block', src: 'image/2kouryuukaku.jpg', label: '光龍閣'},
+      {display: 'block', ...legacy}
     ];
   }
   return [
@@ -421,7 +421,9 @@ const adminTransitionSequences = [
   [46, 47, 48],
   [47, 51, 47],
   [25, 47],
-  [51, 25, 47]
+  [51, 25, 47],
+  [1, 15, 25, 27, 47, 48, 51, 53, 54, 1],
+  [54, 53, 51, 50, 48, 47, 46, 25, 24, 15, 1]
 ];
 for (const sequence of adminTransitionSequences) {
   for (const number of sequence) {

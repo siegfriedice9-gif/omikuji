@@ -399,11 +399,11 @@ function showAdminResult(index) {
         if (result.godNumber <= 5) {
             title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
             setTempleItem(imgs[0], "block", "image/1yakushidou.jpg", "薬師堂");
-            setTempleItem(imgs[1], "none", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+            setTempleItem(imgs[1], "block", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
         } else if (result.godNumber <= 9) {
             title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-            setTempleItem(imgs[0], "none", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
-            setTempleItem(imgs[1], "block", "image/2kouryuukaku.jpg", "光龍閣");
+            setTempleItem(imgs[0], "block", "image/2kouryuukaku.jpg", "光龍閣");
+            setTempleItem(imgs[1], "block", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
         } else {
             title.innerHTML = "ご縁仏を参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
             setTempleItem(imgs[0], "block", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);

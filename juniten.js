@@ -57,10 +57,10 @@
     if (typeof isAdminMode === 'undefined' || !isAdminMode || !result || baseItems.length < 2) return;
     if (result.godNumber <= 5) {
       setTempleItem(baseItems[0], 'block', 'image/1yakushidou.jpg', '薬師堂');
-      setTempleItem(baseItems[1], 'none', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+      setTempleItem(baseItems[1], 'block', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
     } else if (result.godNumber <= 9) {
-      setTempleItem(baseItems[0], 'none', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
-      setTempleItem(baseItems[1], 'block', 'image/2kouryuukaku.jpg', '光龍閣');
+      setTempleItem(baseItems[0], 'block', 'image/2kouryuukaku.jpg', '光龍閣');
+      setTempleItem(baseItems[1], 'block', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
     } else {
       setTempleItem(baseItems[0], 'block', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
       setTempleItem(baseItems[1], 'none', `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
