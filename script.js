@@ -414,22 +414,19 @@ function showAdminResult(index) {
 
     // 閲覧数を含めたカウンター表示
     updateViewCountDisplay();
-    document.getElementById('prevBtn').disabled = (index === 0);
-    document.getElementById('nextBtn').disabled = (index === omikujiResults.length - 1);
+    // 管理者モードでは端の番号でもナビゲーションを循環させる。
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').disabled = false;
 }
 
 function showPrevious() {
-    if (currentIndex > 0) {
-        currentIndex--;
-        showAdminResult(currentIndex);
-    }
+    currentIndex = (currentIndex - 1 + omikujiResults.length) % omikujiResults.length;
+    showAdminResult(currentIndex);
 }
 
 function showNext() {
-    if (currentIndex < omikujiResults.length - 1) {
-        currentIndex++;
-        showAdminResult(currentIndex);
-    }
+    currentIndex = (currentIndex + 1) % omikujiResults.length;
+    showAdminResult(currentIndex);
 }
 
 // =============================

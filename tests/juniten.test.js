@@ -434,6 +434,34 @@ for (const sequence of adminTransitionSequences) {
   }
 }
 
+// 管理者モードの前へ・次へは両端でも有効で、1↔54を循環すること。
+function assertCircularNavigation(expectedNumber, description) {
+  const index = expectedNumber - 1;
+  triggerObservers();
+  assert.equal(vm.runInContext('currentIndex', context), index, `${description} currentIndex`);
+  assertRendered(results[index], `admin circular ${description}`);
+  assert.equal(document.getElementById('prevBtn').disabled, false, `${description} prev enabled`);
+  assert.equal(document.getElementById('nextBtn').disabled, false, `${description} next enabled`);
+}
+vm.runInContext('isAdminMode = true; currentIndex = 0; showAdminResult(0);', context);
+assertCircularNavigation(1, 'start 1');
+vm.runInContext('showPrevious()', context);
+assertCircularNavigation(54, '1→prev→54');
+vm.runInContext('showPrevious()', context);
+assertCircularNavigation(53, '54→prev→53');
+vm.runInContext('showNext()', context);
+assertCircularNavigation(54, '53→next→54');
+vm.runInContext('showNext()', context);
+assertCircularNavigation(1, '54→next→1');
+vm.runInContext('showNext()', context);
+assertCircularNavigation(2, '1→next→2');
+vm.runInContext('isAdminMode = true; currentIndex = 53; showAdminResult(53);', context);
+assertCircularNavigation(54, 'start 54');
+vm.runInContext('showNext()', context);
+assertCircularNavigation(1, '54→next→1 direct');
+vm.runInContext('showPrevious()', context);
+assertCircularNavigation(54, '1→prev→54 direct');
+
 for (let index = 0; index < results.length; index++) {
   vm.runInContext(`isAdminMode = false; powerData.selectedResult = omikujiResults[${index}]; showResult();`, context);
   triggerObservers();
