@@ -26,7 +26,7 @@ let powerData = { power: 0, tapCount: 0, charging: false, complete: false, selec
 // omikujiResults
 // =============================
 const omikujiResults = [
-    { number: 1, fortune: "大吉", message: "素晴らしい1年となるでしょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
+    { number: 1, fortune: "大吉", message: "素晴らしい１年となるでしょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
     { number: 2, fortune: "中吉", message: "良いご縁に恵まれます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
     { number: 3, fortune: "小吉", message: "小さな幸せが訪れます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 1 },
     { number: 4, fortune: "吉", message: "穏やかな日々が続きます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 1 },
@@ -55,28 +55,28 @@ const omikujiResults = [
     { number: 27, fortune: "繁盛吉", message: "努力した分が結果に出ます", god: "大黒天", godReading: "だいこくてん", godNumber: 8, weight: 1 },
     { number: 28, fortune: "恋愛吉", message: "心に決めた人が運命の人", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, weight: 2 },
     { number: 29, fortune: "自信吉", message: "年齢などにとらわれる必要無し", god: "八幡大菩薩", godReading: "はちまんだいぼさつ", godNumber: 2, weight: 2 },
-    { number: 30, fortune: "リフレッシュ吉", message: "異変を感じたら迷わず休む", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
+    { number: 30, fortune: "リフレッシュ吉", message: "異変を感じたら迷わず休め", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
     { number: 31, fortune: "牛歩吉", message: "歩みは遅いが着実に実る", god: "地天", godReading: "じてん", godNumber: 5, weight: 2 },
     { number: 32, fortune: "練習吉", message: "努力すれば自己新記録が狙える", god: "梵天", godReading: "ぼんてん", godNumber: 5, weight: 2 },
     { number: 33, fortune: "取組吉", message: "新しい事に利が多し", god: "風天", godReading: "ふうてん", godNumber: 5, weight: 2 },
-    { number: 34, fortune: "返崎吉", message: "貸して忘れてた物が手元に戻ります", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, weight: 2 },
+    { number: 34, fortune: "返却吉", message: "貸して忘れてた物が手元に戻ります", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, weight: 2 },
     { number: 35, fortune: "上昇吉", message: "行動すれば追い風が吹くでしょう", god: "風天", godReading: "ふうてん", godNumber: 5, weight: 2 },
-    { number: 36, fortune: "余裕吉", message: "1度寝しても何とかなります", god: "梵天", godReading: "ぼんてん", godNumber: 5, weight: 2 },
+    { number: 36, fortune: "余裕吉", message: "２度寝しても何とかなります", god: "梵天", godReading: "ぼんてん", godNumber: 5, weight: 2 },
     { number: 37, fortune: "突破吉", message: "勢いで押すと結果が出ます", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, weight: 2 },
     { number: 38, fortune: "魅力吉", message: "人に聞くと自分の知らない発見有り", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, weight: 2 },
     { number: 39, fortune: "武士道吉", message: "弱音を見せないで行動すると味方が増えます", god: "焔摩天", godReading: "えんまてん", godNumber: 5, weight: 2 },
     { number: 40, fortune: "挑戦吉", message: "チャレンジが実を結ぶ年", god: "梵天", godReading: "ぼんてん", godNumber: 5, weight: 2 },
-    { number: 41, fortune: "二度吉", message: "今年は幸せのピークが2度有り", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, weight: 2 },
-    { number: 42, fortune: "月一吉", message: "月に1回は良いことが有るでしょう", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, weight: 2 },
+    { number: 41, fortune: "二度吉", message: "今年は幸せのピークが２度有り", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, weight: 2 },
+    { number: 42, fortune: "月一吉", message: "月に１回は良いことが有るでしょう", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, weight: 2 },
     { number: 43, fortune: "果報吉", message: "寝れば寝るほど大吉が訪れます", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
     { number: 44, fortune: "大吉", message: "今年は大躍進を遂げるでしょう", god: "薬師如来", godReading: "やくしにょらい", godNumber: 1, weight: 2 },
     { number: 45, fortune: "みな吉", message: "自分と周囲が皆幸せな一年でしょう", god: "十一面観音菩薩", godReading: "じゅういちめんかんのんぼさつ", godNumber: 4, weight: 2 },
     { number: 46, fortune: "堅実吉", message: "とにかくまじめに頑張れば結果が出ます", god: "帝釈天", godReading: "たいしゃくてん", godNumber: 5, weight: 2 },
-    { number: 47, fortune: "変化吉", message: "思ってる事をやってみましょう", god: "毘沙門天", godReading: "びしゃもんてん", godNumber: 5, weight: 2 },
+    { number: 47, fortune: "変化吉", message: "思ってる事をやってみましょう", god: "青面金剛", godReading: "しょうめんこんごう", godNumber: 10, weight: 2 },
     { number: 48, fortune: "中吉", message: "金運が良いでしょう", god: "大黒天", godReading: "だいこくてん", godNumber: 8, weight: 1 },
     { number: 49, fortune: "通い吉", message: "毎月パワースポットを巡ると幸運キープ", god: "三十三観音", godReading: "さんじゅうさんかんのん", godNumber: 12, weight: 2 },
     { number: 50, fortune: "旅吉", message: "いつか行きたい場所へ今年行きましょう", god: "弘法大師", godReading: "こうぼうだいし", godNumber: 9, weight: 2 },
-    { number: 51, fortune: "縁切り吉", message: "悪縁、腐れ縁がやっと切れます", god: "青面金剛", godReading: "しょうめんこんごう", godNumber: 10, weight: 2 },
+    { number: 51, fortune: "縁切り吉", message: "悪縁、腐れ縁がやっと切れます", god: "伊舎那天", godReading: "いざなてん", godNumber: 5, weight: 2 },
     { number: 52, fortune: "小吉", message: "もやもやが全て水に流せます", god: "水天", godReading: "すいてん", godNumber: 5, weight: 2 },
     { number: 53, fortune: "鬼吉", message: "強い心が身に付く年になります", god: "不動明王", godReading: "ふどうみょうおう", godNumber: 7, weight: 1 },
     { number: 54, fortune: "守護吉", message: "振れない心を得られる自信が付くでしょう", god: "不動明王", godReading: "ふどうみょうおう", godNumber: 7, weight: 1 }
@@ -377,47 +377,56 @@ function showAdminResult(index) {
 
     const wg = document.getElementById('worshipGuide');
     const title = wg ? wg.querySelector('.worship-guide-title') : null;
-    const imgs = wg ? wg.querySelectorAll('.temple-item') : null;
+    const templeImages = wg ? wg.querySelector('.temple-images') : null;
+    const imgs = templeImages ? Array.from(templeImages.children).filter(item =>
+        item.classList.contains('temple-item') && !item.classList.contains('juniten-extra')
+    ) : [];
+
+    if (templeImages) {
+        Array.from(templeImages.querySelectorAll('.juniten-extra')).forEach(item => item.remove());
+    }
+
+    const setTempleItem = (item, display, src, label) => {
+        if (!item) return;
+        item.style.display = display;
+        const img = item.querySelector('img');
+        const text = item.querySelector('.temple-label');
+        if (img) img.src = src;
+        if (text) text.textContent = label;
+    };
 
     if (wg && title && imgs && imgs.length >= 2) {
         if (result.godNumber <= 5) {
             title.innerHTML = "薬師堂で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-            imgs[0].style.display = "block";
-            imgs[1].style.display = "none";
-            imgs[0].querySelector('img').src = `image/1yakushidou.jpg`;
-            imgs[0].querySelector('.temple-label').textContent = `薬師堂`;
+            setTempleItem(imgs[0], "block", "image/1yakushidou.jpg", "薬師堂");
+            setTempleItem(imgs[1], "block", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
         } else if (result.godNumber <= 9) {
             title.innerHTML = "光龍閣で参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-            imgs[0].style.display = "none";
-            imgs[1].style.display = "block";
-            imgs[1].querySelector('img').src = `image/2kouryuukaku.jpg`;
-            imgs[1].querySelector('.temple-label').textContent = `光龍閣`;
+            setTempleItem(imgs[0], "block", "image/2kouryuukaku.jpg", "光龍閣");
+            setTempleItem(imgs[1], "block", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
         } else {
             title.innerHTML = "ご縁仏を参拝されまして<br>より深いご利益をお授かりください<br>ご縁仏の配置は画面一番下を参照下さい。";
-            imgs[0].style.display = "block";
-            imgs[1].style.display = "block";
+            setTempleItem(imgs[0], "block", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
+            setTempleItem(imgs[1], "none", `image/${result.godNumber}.jpg`, `ご縁仏 ${result.godNumber}`);
         }
         setTimeout(()=>{ wg.classList.add('show'); wg.scrollIntoView({behavior:'smooth', block:'start'}); vibrate(50); }, 3000);
     }
 
     // 閲覧数を含めたカウンター表示
     updateViewCountDisplay();
-    document.getElementById('prevBtn').disabled = (index === 0);
-    document.getElementById('nextBtn').disabled = (index === omikujiResults.length - 1);
+    // 管理者モードでは端の番号でもナビゲーションを循環させる。
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').disabled = false;
 }
 
 function showPrevious() {
-    if (currentIndex > 0) {
-        currentIndex--;
-        showAdminResult(currentIndex);
-    }
+    currentIndex = (currentIndex - 1 + omikujiResults.length) % omikujiResults.length;
+    showAdminResult(currentIndex);
 }
 
 function showNext() {
-    if (currentIndex < omikujiResults.length - 1) {
-        currentIndex++;
-        showAdminResult(currentIndex);
-    }
+    currentIndex = (currentIndex + 1) % omikujiResults.length;
+    showAdminResult(currentIndex);
 }
 
 // =============================
