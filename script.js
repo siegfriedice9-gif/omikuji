@@ -108,11 +108,7 @@ function drawOmikuji() {
         return;
     }
 
-    // 通常モードの場合は閲覧数をカウント
-    if (!isAdminMode) {
-        viewCount++;
-        saveViewCount();
-    }
+    // 実行回数は結果カードを表示した時点で、別ファイルから集計する。
 
     button.style.display = 'none';
     resultCard.classList.remove('show');
@@ -154,7 +150,7 @@ function updateViewCountDisplay() {
     if (isAdminMode) {
         const counterEl = document.getElementById('adminCounter');
         if (counterEl) {
-            counterEl.textContent = `${currentIndex + 1} / ${omikujiResults.length} | 閲覧数: ${viewCount}`;
+            counterEl.textContent = `${currentIndex + 1} / ${omikujiResults.length}`;
         }
     }
 }
@@ -341,8 +337,7 @@ function enableAdminMode() {
         exitBtn.style.display = 'inline-block';
     }
     
-    // 閲覧数を読み込んで表示
-    loadViewCount();
+    // おみくじの番号カウンターだけ表示。統計はGoogleで権限を確認する。
     updateViewCountDisplay();
     
     showAdminResult(currentIndex);
@@ -459,8 +454,7 @@ function checkPassword() {
 
 // ページロード時の設定
 document.addEventListener('DOMContentLoaded', function() {
-    // 閲覧数を読み込み
-    loadViewCount();
+    // 端末内の旧カウントは共通統計に移行しない。
     
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
@@ -619,6 +613,9 @@ function showResult() {
 
     // カードを表示（まだ中身は透明）
     resultCard.classList.add('show');
+    if (!isAdminMode) {
+        document.dispatchEvent(new CustomEvent('omikuji:draw-result-shown'));
+    }
 
     // 修正: まずスクロールを実行してから、アニメーションを開始
     if (resultCard) {
